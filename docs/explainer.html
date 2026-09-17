@@ -1138,7 +1138,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
               <th scope="row"><code>PostToolUse</code></th>
               <td>After every file write</td>
               <td>Formats the file with Biome. When a dependency manifest changes, runs <code>npm audit</code> or <code>pip-audit</code>.</td>
-              <td><span class="exit exit--block">exit 2</span><br>When the audit fails.</td>
+              <td><span class="exit exit--block">exit 2</span><br>When the audit fails. The write stands, and the agent sees why.</td>
             </tr>
             <tr>
               <th scope="row"><code>SessionStart</code></th>
@@ -1157,7 +1157,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
       </div>
 
       <div class="prose prose--after">
-        <p>Exit 0 lets the action continue. Exit 2 blocks it and sends the error text back to the model. The <code>Stop</code> hook checks <code>stop_hook_active</code> first, so a suite that cannot pass does not loop the session forever.</p>
+        <p>Exit 0 lets the action continue. Exit 2 sends the error text back to the model. Before a tool call it also blocks the call, and on <code>Stop</code> it sends the agent back to work. After a write the file has already changed, so the agent sees the error and has to act on it. The <code>Stop</code> hook checks <code>stop_hook_active</code> first, so a suite that cannot pass does not loop the session forever.</p>
       </div>
       <blockquote class="rule">
         <p class="rule-ref">Playbook 7.5</p>
