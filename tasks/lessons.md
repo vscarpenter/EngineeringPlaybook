@@ -12,6 +12,22 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 - macOS `/usr/bin/tidy` dates from 2006 and rejects HTML5 elements. Validate HTML with a parser check, not with `tidy`.
 - Pipe command output. Do not write temp files to `/tmp` and delete them. Use the session scratchpad when a file is needed.
 
+## Hooks
+
+- A hook should act only on tools and inputs that are already present. Call `node_modules/.bin/<tool>`, never `npx <tool>`. Check that a lockfile or a config exists before running the tool that needs it.
+- Pick the tool from the file that changed, not from which manifests exist. The old audit hook ran `npm audit` when a Python requirements file changed.
+- Test a hook with stub tools on `PATH` that log every call. Then a test can assert that something never ran, which an exit code cannot show.
+- Read a tool's security model before wiring it into a hook. `pip-audit -r <file>` is "functionally equivalent to `pip install -r`", so it downloads and builds what it audits. A fix that made the audit correct also made it execute code on every manifest edit.
+- A stub that logs `$*` flattens its arguments, so a test passes with the quotes removed. Log each argument in its own brackets, then mutate the hook and watch a test fail.
+- `cd ""` succeeds. Test that a variable is set before using it as a directory.
+- `jq -e` exits non-zero for a missing key and for invalid JSON alike. A guard built on it treats a broken file as an absent setting. Read the value with `jq -r '... // empty'` and handle a jq failure on its own.
+- A prefix match such as `"$p"/*` is text. A path with a `..` step passes it and leaves the folder. Reject `..` steps as well.
+- After fixing a hook, mutate it on a copy and run the tests with `SETTINGS=<copy>`. A guard that no mutation can break has no test.
+- Match a file by its base name, `${f##*/}`. `*package.json` also matches `my-package.json` and everything under `node_modules/`.
+- Biome finds its config from the working directory, and Claude's working directory follows its last `cd`. A format hook has to `cd` to the project root and skip files outside it.
+- `bash tests/test_hooks.sh` before and after any change to `.claude/settings.json`. `HOOK_SH=dash` runs the hooks under another shell, and `SETTINGS=<file>` tests another settings file.
+- A live format hook rewrites the file you just edited. After editing `settings.json`, check `git diff --numstat`. `jq --indent 2 .` restores the layout.
+
 ## Editing the kit
 
 - `docs/explainer.html` hard-codes line counts from `AGENTS.md` and the reference: two hero facts, two sentences, and every segment of the to-scale figure. Any edit to those files makes the page wrong. Recompute from the headings and update the page in the same change.

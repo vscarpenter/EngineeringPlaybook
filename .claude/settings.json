@@ -17,11 +17,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path // empty'); [ -n \"$f\" ] && npx @biomejs/biome format --write \"$f\" >/dev/null 2>&1 || true"
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); p=\"${CLAUDE_PROJECT_DIR%/}\"; [ -n \"$p\" ] && cd \"$p\" || exit 0; case \"$f\" in \"$p\"/*) r=\"/${f#\"$p\"/}\";; *) exit 0;; esac; case \"$r\" in */../*|*/..|*/node_modules/*) exit 0;; esac; b=node_modules/.bin/biome; [ -x \"$b\" ] && \"$b\" format --write \"$f\" >/dev/null 2>&1; true"
           },
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *package.json|*package-lock.json|*pnpm-lock.yaml|*requirements*.txt|*pyproject.toml|*uv.lock) if [ -f \"$CLAUDE_PROJECT_DIR/package.json\" ]; then (cd \"$CLAUDE_PROJECT_DIR\" && npm audit --audit-level=high) || { echo 'Dependency audit failed. Resolve high-severity findings before continuing.' >&2; exit 2; }; elif command -v pip-audit >/dev/null; then (cd \"$CLAUDE_PROJECT_DIR\" && pip-audit) || { echo 'pip-audit failed. Resolve findings before continuing.' >&2; exit 2; }; fi;; esac"
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); p=\"${CLAUDE_PROJECT_DIR%/}\"; [ -n \"$p\" ] && cd \"$p\" || exit 0; case \"$f\" in \"$p\"/*) r=\"/${f#\"$p\"/}\";; *) exit 0;; esac; case \"$r\" in */../*|*/..|*/node_modules/*) exit 0;; esac; case \"${f##*/}\" in package.json|package-lock.json|npm-shrinkwrap.json) ;; *) exit 0;; esac; [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ] || exit 0; command -v npm >/dev/null || exit 0; npm audit --audit-level=high >&2 || { echo 'npm audit failed or found issues. Resolve them before continuing.' >&2; exit 2; }; true"
           }
         ]
       }
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ \"$(jq -r '.stop_hook_active // false')\" = 'true' ]; then exit 0; fi; cd \"$CLAUDE_PROJECT_DIR\" && if [ -f package.json ]; then npm test >/dev/null 2>&1 && { [ -f tsconfig.json ] && npx tsc --noEmit >/dev/null 2>&1 || true; } || { echo 'Test suite or type check failing. Fix before ending the session (AGENTS.md, handoff).' >&2; exit 2; }; fi; true"
+            "command": "if [ \"$(jq -r '.stop_hook_active // false')\" = 'true' ]; then exit 0; fi; p=\"${CLAUDE_PROJECT_DIR%/}\"; [ -n \"$p\" ] && cd \"$p\" || exit 0; [ -f package.json ] && command -v npm >/dev/null || exit 0; fail() { echo \"$1 Fix it before ending the session (AGENTS.md, handoff).\" >&2; exit 2; }; t=$(jq -r '.scripts.test // empty' package.json 2>/dev/null) || fail 'package.json does not parse.'; case \"$t\" in ''|*'no test specified'*) exit 0;; esac; npm test >/dev/null 2>&1 || fail 'The test suite is failing.'; tsc=node_modules/.bin/tsc; if [ -f tsconfig.json ] && [ -x \"$tsc\" ]; then \"$tsc\" --noEmit >/dev/null 2>&1 || fail 'The type check is failing.'; fi; true"
           }
         ]
       }

@@ -1,0 +1,35 @@
+name: Hook tests
+
+# The hooks in .claude/settings.json run on other people's machines. These
+# tests are the only thing that checks them, so they run on every pull request.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  hooks:
+    name: Hooks on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        # Adopters use both. macOS ships bash 3.2 and BSD tools, Ubuntu runs sh as dash.
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      # Pinned to a commit, because a tag can move. This is v7.0.1.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Run the hook tests under each shell
+        run: |
+          for shell in sh bash dash; do
+            echo "::group::hooks under $shell"
+            HOOK_SH="$shell" bash tests/test_hooks.sh
+            echo "::endgroup::"
+          done

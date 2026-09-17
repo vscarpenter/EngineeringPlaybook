@@ -37,7 +37,7 @@ An illustrated explainer lives at [`docs/explainer.html`](docs/explainer.html). 
 | `.claude/settings.json` | The hooks: block destructive commands, format, audit dependencies, restore task state, gate on tests |
 | `.claude/skills/engineering-playbook/` | The full reference, and a routing table from a need to a section |
 
-Everything else here belongs to this repository: this README, `INSTALL.md`, `docs/`, and `tasks/`. The `tasks/` folder is the playbook applied to its own development.
+Everything else here belongs to this repository: this README, `INSTALL.md`, `docs/`, `tests/`, `tasks/`, and `.github/`. The `tasks/` folder is the playbook applied to its own development.
 
 ### Not included yet
 
@@ -46,7 +46,7 @@ The reference names companions that this repository does not include. Add your o
 - Helper skills: `/qspec`, `/qcheck`, and `/tdd`
 - Reviewer and builder subagents: `build-validator`, `code-simplifier`, `security-reviewer`, `tdd-enforcer`, and `verify-app`
 - Path-scoped rules in `.claude/rules/`
-- A secret-scanning hook. Section 1.9 of the reference expects one before every commit.
+- A secret-scanning hook. Section 1.9 of the reference tells agents to run a scanner before commit when the project has one.
 
 ## Quick start
 
@@ -69,19 +69,14 @@ To pin what you install, tell your agent which commit to check out in the clone.
 
 ## Before you turn on the hooks
 
-Hooks run shell commands on your machine with your permissions. Read `.claude/settings.json` before you trust it.
+Hooks run shell commands on your machine with your permissions. Read `.claude/settings.json` before you trust it. Each hook acts only on tools your project already has, and none of them downloads anything.
 
 - Every hook needs `jq` and a POSIX shell. Without `jq`, the hook that blocks destructive commands lets everything through.
-- The format hook runs Biome through `npx`. In a repository without Biome, replace it with your formatter or delete it. Left alone, it fetches Biome and reformats your files to Biome's defaults.
-- The audit hook runs `npm audit` or `pip-audit` when a dependency manifest changes. `npm audit` needs a `package-lock.json`, so pnpm and yarn projects need their own command. Bare `pip-audit` checks your active Python environment, not the project.
-- The `Stop` hook runs `npm test` when a `package.json` exists. A failing suite sends the agent back to work before it can finish. Replace the command with your own test command. On a slow suite, consider leaving this gate to CI.
+- The format hook runs Biome only when your project has it installed, at `node_modules/.bin/biome`, and only on files inside your project. Without Biome it does nothing. Swap in your own formatter if you use another one.
+- The audit hook runs `npm audit` at the project root when `package.json` or its lockfile changes. It needs a `package-lock.json` or an `npm-shrinkwrap.json`, and does nothing without one. Python, pnpm, yarn, and uv projects need their own command. The kit runs no Python audit, because `pip-audit -r` installs the requirements to resolve them.
+- The `Stop` hook runs `npm test` when `package.json` has a test script, then `tsc --noEmit` when your project has a `tsconfig.json` and TypeScript installed. A failure sends the agent back to work before it can finish. Replace the commands with your own. On a slow suite, consider leaving this gate to CI.
 - The `PreToolUse` hook blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a harmless command that only mentions one of those phrases.
 - Hooks are a Claude Code feature. Other harnesses ignore `.claude/settings.json`, so those rules rest on CI and on the agent.
-
-The shipped `Stop` hook has two known defects:
-
-- It runs `npx tsc --noEmit` when a `tsconfig.json` exists, but a type error never blocks the agent.
-- Bare `npx tsc` fetches an unrelated package when TypeScript is not a dev dependency. Remove that part unless it is one.
 
 ## Manual install
 
@@ -112,6 +107,16 @@ The hooks come last, because copying them turns them on:
 - Every session ends with a Resuming From Here block, so the next session needs no briefing.
 - After any correction, the agent adds a line to `tasks/lessons.md`.
 - Parts 6 and 7 of the reference are written for you, not the agent. They cover prompt patterns and how to build skills, rules, subagents, and hooks.
+
+## Working on the kit
+
+The hooks are shell one-liners in `.claude/settings.json`, and they have tests. Run them before and after you change a hook:
+
+```bash
+bash tests/test_hooks.sh
+```
+
+Each test runs a hook against stub tools that record how they were called. Nothing real runs, and nothing touches the network. CI runs the same tests on Ubuntu and macOS for every pull request, under `sh`, `bash`, and `dash`.
 
 ## License
 
