@@ -42,7 +42,7 @@ Make the public repository legal to adopt and easy to install, for a person deci
 2. `LICENSE` matches GitHub's MIT template exactly, with the year and name filled in.
 3. `CLAUDE.md` keeps the `@AGENTS.md` import on its own line and names nothing the repository lacks.
 4. `INSTALL.md` lists exactly the four kit paths to copy, plus the license notice, and tells the agent not to copy `README.md`, `INSTALL.md`, `docs/`, or `tasks/`.
-5. `INSTALL.md` covers, in order: confirm a person asked, fetch and record the commit, inventory, merge without overwriting, adapt the hooks, fill in the Project section, verify, report.
+5. `INSTALL.md` covers, in order: confirm a person asked, fetch and record the commit, inventory, plan the merge, adapt the hooks, draft the Project section, show the plan and wait, write, verify, report. It has one approval gate, and no step before the gate writes to the repository. Corrected after the dry run on 2026-09-17: the first draft put the gate before the hook changes, so the person approved a file that never landed.
 6. `README.md` has the quick-start prompt with the raw `INSTALL.md` URL, a manual install, the hook requirements, what the kit lacks, and the license.
 7. A fresh agent following `INSTALL.md` in a fixture repository (Python, with an existing `CLAUDE.md` and `.claude/settings.json`) produces a correct install without overwriting anything.
 8. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.

@@ -86,7 +86,7 @@ Hooks run shell commands on your machine with your permissions. Read `.claude/se
 
 - Every hook needs `jq`.
 - The format hook runs Biome through `npx`. In a repository without Biome, replace it with your formatter or delete it. Left alone, `npx` downloads Biome on every write.
-- The audit hook runs `npm audit` or `pip-audit` when a dependency manifest changes.
+- The audit hook runs `npm audit` or `pip-audit` when a dependency manifest changes. Bare `pip-audit` checks your active Python environment, not the project.
 - The `Stop` hook runs `npm test` when a `package.json` exists. A failing suite sends the agent back to work before it can finish. Replace the command with your own test command. On a slow suite, consider leaving this gate to CI.
 - The `PreToolUse` hook blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a harmless command that only mentions one of those phrases.
 - Hooks are a Claude Code feature. Other harnesses ignore `.claude/settings.json`, so those rules rest on CI and on the agent.
