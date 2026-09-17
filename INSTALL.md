@@ -40,7 +40,7 @@ git -C "$KIT" rev-parse HEAD
 echo "$KIT"
 ```
 
-Keep the printed path and the commit hash. Your shell may not remember `KIT` between commands, so use the printed path from here on. If the person named a tag or a commit, check it out in the clone first.
+If you already cloned the repository to read this file, reuse that clone. Keep the printed path and the commit hash. Your shell may not remember `KIT` between commands, so use the printed path from here on. If the person named a tag or a commit, check it out in the clone first.
 
 Now read `INSTALL.md` from the clone, and follow that copy. It matches the kit you are about to install, pinned or not.
 
@@ -54,12 +54,12 @@ Read the clone's `.claude/settings.json` in full before you go on. Hooks run she
 - Note the formatter, the test command, the type checker, and the dependency audit tool the project uses.
 - Check which of those tools this machine has. A Makefile can call a formatter that is not installed.
 
-Stop and ask the person when any of these is true:
+Stop and ask the person when any of these is true. A stop here is a question, not the approval gate. Ask, take the answer, and carry on planning.
 
 - The folder is not a git repository. Without git there is no baseline and no way back.
 - You are not at the root of the repository.
-- A file you plan to touch has uncommitted changes.
-- `CLAUDE.md` is a symlink. It often points at `AGENTS.md`, so an import line would land in the wrong file.
+- One of the kit's four paths has uncommitted changes.
+- `CLAUDE.md` is a symlink. It often points at `AGENTS.md`, so an import line would land in the wrong file. Offer two choices. Keep the symlink, and skip the import and the Claude Code notes. Or replace it with a real file.
 - The existing `.claude/settings.json` fails `jq empty`, or its `hooks` key has a shape you do not recognize.
 - `jq` is missing, or the machine has no POSIX shell. The kit's hooks need both. Without `jq` the hook that blocks destructive commands lets everything through, so plan no hooks until the person decides.
 
@@ -69,16 +69,16 @@ Decide what each path needs. Write nothing yet.
 
 | Path | Plan when it is missing | Plan when it exists |
 |---|---|---|
-| `AGENTS.md` | Copy the kit's file. | Keep every project rule. Plan one merged file: the kit's sections, then the project's own content under its existing headings. |
+| `AGENTS.md` | Copy the kit's file. | Keep every project rule. Plan one merged file: the kit's sections, then the project's own content under its existing headings, then the Project section last. |
 | `CLAUDE.md` | Copy the kit's file. | Put `@AGENTS.md` on its own line at the top if it is absent. Put the kit's notes directly under it. Keep every existing note below that, unchanged. |
 | `.claude/settings.json` | Copy the kit's file, with the hook changes from step 4. | Keep every existing key, including permissions and hooks. Append each kit matcher group to its event. Skip a group the file already has. |
 | `.claude/skills/engineering-playbook/` | Copy the folder. | This is an earlier install. Plan to show the difference and ask before you replace it. |
 
 Three details decide whether a merge is safe:
 
-- A hook entry means a matcher group: one object with a `matcher` and a `hooks` list. Never fold a kit command into a group the project already has.
-- Keep the existing file's formatting: indentation, key order, and line endings. A merge that reformats lines you did not change is an overwrite.
-- The kit's `CLAUDE.md` describes the kit's hooks. Plan a hooks note that describes the hooks you will really install after step 4.
+- A hook entry means a matcher group: one object with a `matcher` and a `hooks` list. Never fold a kit command into a group the project already has. A group counts as already present only when its matcher and its commands both match.
+- Keep the existing file's formatting: indentation, key order, and line endings. A merge that reformats lines you did not change is an overwrite. Lay out what you append the way the file already does.
+- The kit's `CLAUDE.md` describes the kit's hooks. Plan a hooks note that describes the hooks you will really install after step 4. If the project keeps its notes in `.claude/CLAUDE.md`, treat that file as its `CLAUDE.md`.
 
 Plan two small files inside `.claude/skills/engineering-playbook/`:
 
@@ -87,7 +87,7 @@ Plan two small files inside `.claude/skills/engineering-playbook/`:
 
 Do not plan a `tasks/` folder. The first task that needs a spec or a plan creates it.
 
-List every place where a project rule and a kit rule disagree, wherever the project keeps its rules. The project's rule wins until the person decides. If the project's shared rules live in `CLAUDE.md`, agents that read only `AGENTS.md` never see them. Offer to move them, and let the person choose.
+List every place where a project rule and a kit rule disagree, wherever the project keeps its rules. The project's rule wins until the person decides. Left alone, the merged file holds both rules, and the next agent cannot tell which one wins. Ask the person whether to edit the kit's line for each disagreement. If the project's shared rules live in `CLAUDE.md`, agents that read only `AGENTS.md` never see them. Offer to move them, and let the person choose.
 
 ## 4. Adapt the hooks to this stack
 
@@ -97,7 +97,7 @@ The kit's hooks assume `jq` everywhere and a JavaScript toolchain in three place
 |---|---|---|
 | `PreToolUse` | `jq`. It runs on `Bash` commands. | Keep it. It blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a command that only mentions one of those phrases. Tell the person. |
 | `PostToolUse` | Two commands. The first formats with Biome, run as `npx @biomejs/biome`. | Use the formatter the project already uses and this machine has. Otherwise remove the command. Never leave it in a repository without Biome. `npx` would fetch Biome, and Biome would reformat the project's files to its own defaults. |
-| `PostToolUse` | The second audits dependencies with `npm audit`, or `pip-audit` when it is installed. | Keep it for an npm project that has a `package-lock.json`. A pnpm or yarn project needs its own audit command. For a pip project, keep it only if `pip-audit` is installed and the project has dependencies. Bare `pip-audit` checks the active Python environment, not the project, so say that in your plan. |
+| `PostToolUse` | The second audits dependencies with `npm audit`, or `pip-audit` when it is installed. | Keep it for an npm project that has a `package-lock.json`. With no lockfile, remove it. A pnpm or yarn project needs its own audit command. For a pip project, keep it only if `pip-audit` is installed and the project has dependencies. Bare `pip-audit` checks the active Python environment, not the project, so say that in your plan. |
 | `SessionStart` | `git`, and a `tasks/` folder that may not exist yet | Keep it. It prints the task files and the last five commits into context. |
 | `Stop` | `npm test`, and only when `package.json` exists | Use the project's real test command. Keep the `stop_hook_active` check, or a suite that cannot pass keeps sending the agent back to work. |
 
@@ -111,9 +111,9 @@ Two rules settle the hard cases:
 - The project names a tool that this machine lacks. Do not install it. Ask the person in your plan, and default to removing the hook.
 - The project does not use a tool at all. Remove the hook. Never bring in a tool the project does not already use.
 
-A removed hook leaves its rule to the agent and to CI. Name each such rule in your plan, because `AGENTS.md` still states it.
+A matcher group with no commands left goes away too. A removed hook leaves its rule to the agent and to CI. Name each such rule in your plan, because `AGENTS.md` still states it.
 
-Test every command you plan to change before step 6, without touching the repository. Keep your planned `settings.json` in a scratch file, and run a hook from it like this:
+Test every command you plan to change before step 6, without touching the repository. An unchanged hook needs no test. Keep test input in files, not in the command text. A live copy of the kit's `PreToolUse` hook blocks any command that mentions its phrases. Keep your planned `settings.json` in a scratch file. Run the hook from inside a scratch clone, so the suite does not run in the working tree again:
 
 ```bash
 PLANNED=/path/to/your/planned-settings.json
@@ -122,9 +122,9 @@ printf '%s' '{"stop_hook_active": false}' \
 echo "exit: $?"
 ```
 
-Hooks read JSON on standard input and expect `CLAUDE_PROJECT_DIR`. Change `.hooks.Stop[0]` to point at the hook you changed. For the `Stop` hook, confirm three results. A passing suite exits 0. A failing suite exits 2. A failing suite with `"stop_hook_active": true` exits 0.
+Hooks read JSON on standard input and expect `CLAUDE_PROJECT_DIR`. `PreToolUse` reads `.tool_input.command`, and `PostToolUse` reads `.tool_input.file_path`. Change `.hooks.Stop[0]` to point at the hook you changed. For the `Stop` hook, confirm three results. A passing suite exits 0. A failing suite exits 2. A failing suite with `"stop_hook_active": true` exits 0.
 
-Make the suite fail in a scratch copy, never by breaking a tracked test. Create the copy with `git clone "$PWD" <scratch path>`. That gives you tracked files only, so no `.env` file comes along.
+For the scratch clone, use `git clone "$PWD" <scratch path>`. That gives you tracked files only, so no `.env` file comes along. Make the suite fail in that scratch copy, never by breaking a tracked test.
 
 Ask the person about keeping a `Stop` hook on a slow suite, because it runs every time the agent finishes.
 
@@ -146,21 +146,23 @@ Show the person one plan that holds everything:
 - the commit you fetched
 - each file you will create, and each merge shown as a difference
 - the final `.claude/settings.json`, with each hook you kept, changed, or removed, and why
-- the hooks note for `CLAUDE.md`
+- the hooks note for `CLAUDE.md`, when you plan one
 - the draft Project section
 - each command you ran, and each one you chose not to run
 - each disagreement between a project rule and a kit rule
 - each question you have
 
-Wait for a yes. If the person changes the plan, show the new plan before you write.
+Wait for a yes. If the person changes the plan, show the new plan before you write, unless they tell you to go ahead.
 
 ## 7. Write
 
-Write exactly what the person approved, and nothing else.
+Write exactly what the person approved, and nothing else. Then compare each written file with the version they approved.
 
 Write the adapted `.claude/settings.json`, never the kit's original. Claude Code normally loads hook edits without a restart, so an unadapted hook can run on your very next write.
 
-Then run `git diff` on each merged file. You should see added lines only. The one exception is JSON, where the line before an insertion can gain a comma. Any other changed or removed line means you reformatted or overwrote something, so fix it.
+Then run `git diff` on each merged file. You should see added lines only. The one exception is JSON, where the line before an insertion can gain a comma. Any other changed or removed line means you reformatted or overwrote something, so fix it. A symlink the person chose to replace shows as a type change, which is expected.
+
+Your own session's hooks fire on your writes too. If one of them reformats a file, restore the file's layout.
 
 ## 8. Verify
 
@@ -173,11 +175,11 @@ The first command proves the file parses. The second prints every hook in full, 
 
 Then confirm each of these:
 
-- `CLAUDE.md` has `@AGENTS.md` on a line of its own.
+- `CLAUDE.md` has `@AGENTS.md` on a line of its own, unless the person kept a symlink.
 - The reference exists at `.claude/skills/engineering-playbook/references/engineering-playbook.md`, the path `AGENTS.md` names.
 - `LICENSE` and `INSTALLED_FROM` sit in `.claude/skills/engineering-playbook/`.
-- Every command in the Project section is one you ran in step 5.
-- `git status` shows your files, the step 2 baseline, and the artifacts you listed. Nothing else.
+- Every command the Project section tells agents to run is one you ran in step 5.
+- `git status --untracked-files=all` shows your files, the step 2 baseline, and the artifacts you listed. Nothing else.
 
 If a hook does not fire, the person can check it in the `/hooks` menu.
 
