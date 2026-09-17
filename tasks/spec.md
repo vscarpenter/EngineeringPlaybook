@@ -7,7 +7,8 @@ Fix five defects in the shipped hooks and three wrong statements in the referenc
 ## Inputs / Outputs
 
 - Inputs: Vinny's request on 2026-09-17 ("let's fix the four hook defects and the reference wording"), and his three answers the same day: fix the format hook too, reword reference 1.9 to a conditional, and commit the tests as `tests/test_hooks.sh`.
-- Outputs: `.claude/settings.json`, `tests/test_hooks.sh`, four reference lines (1.9 and 7.5), and the documents that describe the hooks: `README.md`, `INSTALL.md`, and `docs/explainer.html`. Branch `fix/hook-defects`.
+- Outputs: `.claude/settings.json`, `tests/test_hooks.sh`, four reference lines (1.9 and 7.5), and the documents that describe the hooks: `README.md`, `INSTALL.md`, `docs/explainer.html`, and one bullet in `CLAUDE.md`. Branch `fix/hook-defects`.
+- Corrected after review on 2026-09-17, with Vinny's approval: the first design audited Python with `pip-audit -r <file>`. pip-audit's README says that is "functionally equivalent to `pip install -r`", so it downloads and builds packages on every manifest edit. The hook now audits npm only. Vinny also approved the `CLAUDE.md` edit, which the first spec excluded.
 
 ## The rule behind every fix
 
@@ -28,8 +29,11 @@ A hook acts only when the tool and the input it needs are already present. It ne
 
 - `tsconfig.json` exists but TypeScript is not installed: no type check, and nothing fetched.
 - `package.json` changes in a project with no `package-lock.json`: no audit, no failure.
-- `requirements.txt` changes in a repository that also has a `package.json`: `pip-audit` runs, `npm audit` does not.
-- `pip-audit` is not installed: the hook does nothing.
+- A Python manifest changes, with `pip-audit` installed: nothing runs. Python projects bring their own audit.
+- A file named `my-package.json`, or a `package.json` under `node_modules/`, or a manifest outside the project: nothing runs.
+- `npm` is missing, or `package.json` has no test script: the `Stop` hook does nothing.
+- The written file sits outside the project: the format hook leaves it alone.
+- `CLAUDE_PROJECT_DIR` is unset: every hook exits 0.
 - The formatter fails: the write still stands and nothing blocks.
 - A file that is not a manifest changes: the audit hook does nothing.
 - `CLAUDE_PROJECT_DIR` has spaces in its path.
@@ -37,9 +41,9 @@ A hook acts only when the tool and the input it needs are already present. It ne
 ## Out of Scope
 
 - A secret-scanning hook. Vinny chose to reword 1.9 instead.
-- Audit support for pnpm, yarn, and uv. The hook drops the two triggers it cannot serve.
+- Audit support for Python, pnpm, yarn, and uv. The hook drops every trigger it cannot serve safely.
 - Monorepo lockfile discovery. `npm audit` still runs at the project root.
-- Any change to `AGENTS.md` or `CLAUDE.md`.
+- Any change to `AGENTS.md`.
 - The decisions still open from earlier tasks: a version bump, a definition of "trivial", declining a BLOCKING finding alone, 4.2, a release tag, and publishing the explainer.
 
 ## Acceptance Criteria
@@ -48,13 +52,15 @@ A hook acts only when the tool and the input it needs are already present. It ne
 2. The `Stop` hook runs the type check only through `node_modules/.bin/tsc`, and only when `tsconfig.json` exists. It never calls `npx`.
 3. The `Stop` hook still exits 0 when `stop_hook_active` is true, exits 0 with no `package.json`, and exits 2 when the tests fail.
 4. The audit hook runs `npm audit --audit-level=high` only when the changed file is `package.json` or `package-lock.json` and a `package-lock.json` exists.
-5. The audit hook runs `pip-audit -r <file>` for a changed requirements file, and `pip-audit <folder>` for a changed `pyproject.toml`. It never runs bare `pip-audit`.
-6. The audit hook picks its tool from the changed file, not from which manifests exist.
+5. The audit hook never runs `pip-audit`, because resolving a requirements file installs it.
+6. The audit hook acts on a file only when its name is exactly `package.json`, `package-lock.json`, or `npm-shrinkwrap.json`, it sits inside the project, and it is not under `node_modules/`.
 7. The audit hook exits 2 when an audit fails, and sends the audit output to stderr so the agent can read it.
-8. The format hook runs only `node_modules/.bin/biome`, never `npx`, and never blocks.
+8. The format hook runs only `node_modules/.bin/biome`, never `npx`, and never blocks. It runs from the project root, and only on a file inside the project.
 9. Reference 7.5 says what exit code 2 does for each event, and states the limit of 8 consecutive blocks. Reference 1.9 promises no hook the kit lacks. The 7.5 example matches the shipped hooks. The reference keeps its line count.
-10. `README.md` and `INSTALL.md` describe the hooks as they now behave, drop the defect disclosures, and say how to run the tests. The explainer's hook table matches.
-11. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.
+10. `README.md`, `INSTALL.md`, and the `CLAUDE.md` hooks bullet describe the hooks as they now behave, drop the defect disclosures, and say how to run the tests. The explainer's hook table matches.
+11. The `Stop` hook does nothing without `npm` or a test script. Every hook exits 0 when `CLAUDE_PROJECT_DIR` is unset.
+12. The tests isolate `PATH` to the stubs, log each argument separately so a quoting bug fails a test, and can run against another settings file or shell.
+13. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.
 
 ## Test Stubs
 
@@ -68,10 +74,17 @@ A hook acts only when the tool and the input it needs are already present. It ne
 - `should_exit_0_when_tests_and_types_pass` (3)
 - `should_skip_npm_audit_when_there_is_no_lockfile` (4)
 - `should_run_npm_audit_high_when_a_lockfile_exists` (4)
-- `should_audit_the_changed_requirements_file` (5)
-- `should_audit_the_folder_of_a_changed_pyproject` (5)
-- `should_run_pip_audit_not_npm_in_a_mixed_repository` (6)
-- `should_do_nothing_when_pip_audit_is_missing` (5)
+- `should_never_run_pip_audit` (5)
+- `should_ignore_a_near_miss_file_name` (6)
+- `should_ignore_a_manifest_under_node_modules` (6)
+- `should_ignore_a_manifest_outside_the_project` (6)
+- `should_accept_a_shrinkwrap_as_the_lockfile` (4)
+- `should_ignore_a_file_outside_the_project` (8)
+- `should_run_biome_from_the_project_root` (8)
+- `should_do_nothing_when_npm_is_missing` (11)
+- `should_do_nothing_when_there_is_no_test_script` (11)
+- `should_exit_0_when_the_project_dir_is_unset` (11)
+- `should_pass_a_path_with_a_quote_as_one_argument` (12)
 - `should_ignore_a_file_that_is_not_a_manifest` (4)
 - `should_exit_2_and_show_findings_when_an_audit_fails` (7)
 - `should_never_call_npx_when_biome_is_absent` (8)
@@ -80,4 +93,4 @@ A hook acts only when the tool and the input it needs are already present. It ne
 - `should_work_when_the_project_path_has_spaces` (edge case)
 - `should_hold_no_npx_in_settings` (constraint)
 - Regression guards for the two unchanged hooks: `PreToolUse` blocks and allows, `SessionStart` prints task files.
-- Criteria 9 and 10 are checked by the session's document checks. Criterion 11 by an agent.
+- Criteria 9 and 10 are checked by the session's document checks. Criterion 13 by an agent.
