@@ -13,8 +13,12 @@
 .claude/worktrees/
 CLAUDE.local.md
 
-# Tool output
+# Output from local analysis tooling
 .blume/
+
+# Nothing here reads an env file. This keeps one from going public by accident.
+.env
+.env.*
 
 # In case someone installs a formatter locally for the hooks
 node_modules/

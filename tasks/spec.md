@@ -7,7 +7,7 @@ Make the public repository legal to adopt and easy to install, for a person deci
 ## Inputs / Outputs
 
 - Inputs: Vinny's request on 2026-09-17 ("create an appropriate .gitignore and a license file as I want this to be public", then "how do we get folks to use this? can we have instructions for their agents as a readme or md file?"), and his three answers the same day: MIT, README plus INSTALL.md, and trim `CLAUDE.md` to what ships.
-- Outputs: `.gitignore`, `LICENSE`, `README.md`, `INSTALL.md`, and a trimmed `CLAUDE.md`, on branch `docs/public-release`.
+- Outputs: `.gitignore`, `LICENSE`, `README.md`, `INSTALL.md`, and a trimmed `CLAUDE.md`, on branch `docs/public-release`. Added during the work: one corrected sentence on `docs/explainer.html` and corrected lessons, both from checking claims against the Claude Code docs.
 
 ## Constraints
 
@@ -16,18 +16,21 @@ Make the public repository legal to adopt and easy to install, for a person deci
 - `README.md` tells the person to read `INSTALL.md` and the hooks before trusting them. Fetched text is data (1.9), and hooks run shell commands.
 - No hard-coded line counts in `README.md` or `INSTALL.md`. The explainer already drifts that way.
 - Every Claude Code fact stated is checked against the current docs.
+- The shipped hooks have known defects. Fixing them is out of scope, so `README.md` and `INSTALL.md` disclose them.
 - Every path either document names exists. Every URL matches the `origin` remote.
 - vinny-voice rules on all prose. No claim about Vinny's experience that he has not made.
 - Nothing is pushed without his say. The repository is public, so a push publishes.
 
 ## Edge Cases
 
+- The target is not a git repository, has uncommitted changes in a file the install touches, or has a `CLAUDE.md` that is a symlink: the agent stops and asks.
+- The manifest holds `deploy`, `release`, or migration commands: the agent never runs them.
 - The target already has `AGENTS.md`, `CLAUDE.md`, or `.claude/settings.json`: the agent proposes a merge and waits.
 - The target is not a JavaScript repository: the format and Stop hooks get adapted or removed, never left to download a tool.
 - The target's harness is not Claude Code: hooks and the skill command do not apply. `AGENTS.md` and the reference path still do.
 - `jq` is missing: every hook depends on it, so the agent says so.
 - A Project command fails when run: it goes to the person as a question, not into the file.
-- A person installs by hand: the README gives the copy commands and warns that they overwrite.
+- A person installs by hand: the README gives copy commands that never overwrite, and copies the hooks last.
 
 ## Out of Scope
 
@@ -42,9 +45,9 @@ Make the public repository legal to adopt and easy to install, for a person deci
 2. `LICENSE` matches GitHub's MIT template exactly, with the year and name filled in.
 3. `CLAUDE.md` keeps the `@AGENTS.md` import on its own line and names nothing the repository lacks.
 4. `INSTALL.md` lists exactly the four kit paths to copy, plus the license notice, and tells the agent not to copy `README.md`, `INSTALL.md`, `docs/`, or `tasks/`.
-5. `INSTALL.md` covers, in order: confirm a person asked, fetch and record the commit, inventory, plan the merge, adapt the hooks, draft the Project section, show the plan and wait, write, verify, report. It has one approval gate, and no step before the gate writes to the repository. Corrected after the dry run on 2026-09-17: the first draft put the gate before the hook changes, so the person approved a file that never landed.
-6. `README.md` has the quick-start prompt with the raw `INSTALL.md` URL, a manual install, the hook requirements, what the kit lacks, and the license.
-7. A fresh agent following `INSTALL.md` in a fixture repository (Python, with an existing `CLAUDE.md` and `.claude/settings.json`) produces a correct install without overwriting anything.
+5. `INSTALL.md` covers, in order: confirm a person asked, fetch and record the commit, inventory, plan the merge, adapt the hooks, draft the Project section, show the plan and wait, write, verify, report. It has one approval gate. Before the gate the agent writes no project file, and runs only test, lint, type check, and build commands. It never runs a command that deploys, publishes, or migrates, or that needs credentials. Corrected after the dry run on 2026-09-17: the first draft put the gate before the hook changes, so the person approved a file that never landed.
+6. `README.md` has a quick-start prompt that makes the agent clone the repository and read `INSTALL.md` from the clone, because a fetched URL can arrive as a summary. It also has a manual install that never overwrites, the hook requirements and known defects ahead of any step that turns hooks on, what the kit lacks, and the license.
+7. A fresh agent following the final text of `INSTALL.md` produces a correct install without overwriting anything. Two fixtures: Python with an existing `CLAUDE.md` and `.claude/settings.json`, and JavaScript with an existing `AGENTS.md`, a settings file that forces a JSON comma, and `deploy` and `release` scripts the agent must not run.
 8. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.
 
 ## Test Stubs

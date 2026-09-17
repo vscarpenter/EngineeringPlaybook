@@ -46,50 +46,64 @@ The reference names companions that this repository does not include. Add your o
 - Helper skills: `/qspec`, `/qcheck`, and `/tdd`
 - Reviewer and builder subagents: `build-validator`, `code-simplifier`, `security-reviewer`, `tdd-enforcer`, and `verify-app`
 - Path-scoped rules in `.claude/rules/`
+- A secret-scanning hook. Section 1.9 of the reference expects one before every commit.
 
 ## Quick start
 
-Read [`INSTALL.md`](INSTALL.md) first. It is short, and it is the text your agent will follow. Then paste this into your coding agent, from the root of your repository:
+Read [`INSTALL.md`](INSTALL.md) first. It is the text your agent will follow. Then paste this into your coding agent, from the root of your repository:
 
 ```text
-Read https://raw.githubusercontent.com/vscarpenter/EngineeringPlaybook/main/INSTALL.md
-and follow it to install the Engineering Playbook in this repository.
+Clone https://github.com/vscarpenter/EngineeringPlaybook.git into a temporary folder.
+Read INSTALL.md from the clone, in full, and follow it to install the
+Engineering Playbook in this repository.
 Show me your plan before you change anything.
 ```
 
-Your agent fetches the kit, checks what your repository already has, and proposes a merge. It should never overwrite a file, commit, or push without your say. It adapts the hooks to your stack and fills in the Project section with commands it has run.
+The prompt says to clone because an agent that fetches a URL often receives a summary of the page. Read from the clone, the rules arrive whole.
 
-To pin what you install, replace `main` in the URL with a commit hash, and tell your agent to check out that commit.
+Know what happens before you see a plan. Your agent clones the kit, reads your repository, and runs your test, lint, type check, and build commands. The guide tells it to run nothing else, and never a deploy, a publish, or a migration.
 
-## Manual install
+Then it proposes a merge and waits. It should never overwrite a file, commit, or push without your say. It adapts the hooks to your stack and fills in the Project section with commands it ran.
 
-Use this for a repository that has none of these files yet. These commands overwrite.
-
-```bash
-git clone --depth 1 https://github.com/vscarpenter/EngineeringPlaybook.git /tmp/engineering-playbook
-cd /path/to/your/repository
-cp /tmp/engineering-playbook/AGENTS.md /tmp/engineering-playbook/CLAUDE.md .
-mkdir -p .claude/skills
-cp /tmp/engineering-playbook/.claude/settings.json .claude/settings.json
-cp -R /tmp/engineering-playbook/.claude/skills/engineering-playbook .claude/skills/
-cp /tmp/engineering-playbook/LICENSE .claude/skills/engineering-playbook/LICENSE
-```
-
-Then do two things by hand:
-
-1. Fill in the Project section at the end of `AGENTS.md`: stack, commands, verification tools, patterns, and gotchas. The playbook sends agents there for your project's commands.
-2. Read `.claude/settings.json` and fix the hooks for your stack, as the next section describes.
+To pin what you install, tell your agent which commit to check out in the clone. The install records that commit in `.claude/skills/engineering-playbook/INSTALLED_FROM`.
 
 ## Before you turn on the hooks
 
 Hooks run shell commands on your machine with your permissions. Read `.claude/settings.json` before you trust it.
 
-- Every hook needs `jq`.
-- The format hook runs Biome through `npx`. In a repository without Biome, replace it with your formatter or delete it. Left alone, `npx` downloads Biome on every write.
-- The audit hook runs `npm audit` or `pip-audit` when a dependency manifest changes. Bare `pip-audit` checks your active Python environment, not the project.
+- Every hook needs `jq` and a POSIX shell. Without `jq`, the hook that blocks destructive commands lets everything through.
+- The format hook runs Biome through `npx`. In a repository without Biome, replace it with your formatter or delete it. Left alone, it fetches Biome and reformats your files to Biome's defaults.
+- The audit hook runs `npm audit` or `pip-audit` when a dependency manifest changes. `npm audit` needs a `package-lock.json`, so pnpm and yarn projects need their own command. Bare `pip-audit` checks your active Python environment, not the project.
 - The `Stop` hook runs `npm test` when a `package.json` exists. A failing suite sends the agent back to work before it can finish. Replace the command with your own test command. On a slow suite, consider leaving this gate to CI.
 - The `PreToolUse` hook blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a harmless command that only mentions one of those phrases.
 - Hooks are a Claude Code feature. Other harnesses ignore `.claude/settings.json`, so those rules rest on CI and on the agent.
+
+The shipped `Stop` hook has two known defects:
+
+- It runs `npx tsc --noEmit` when a `tsconfig.json` exists, but a type error never blocks the agent.
+- Bare `npx tsc` fetches an unrelated package when TypeScript is not a dev dependency. Remove that part unless it is one.
+
+## Manual install
+
+These commands never overwrite. `cp -n` skips a file that already exists, so read its output. If it skips one, merge that file by hand.
+
+```bash
+KIT="$(mktemp -d)"
+git clone --depth 1 https://github.com/vscarpenter/EngineeringPlaybook.git "$KIT"
+cd /path/to/your/repository
+mkdir -p .claude/skills
+cp -n "$KIT/AGENTS.md" "$KIT/CLAUDE.md" .
+cp -Rn "$KIT/.claude/skills/engineering-playbook" .claude/skills/
+cp -n "$KIT/LICENSE" .claude/skills/engineering-playbook/LICENSE
+git -C "$KIT" rev-parse HEAD > .claude/skills/engineering-playbook/INSTALLED_FROM
+echo "Now edit $KIT/.claude/settings.json for your stack."
+```
+
+The hooks come last, because copying them turns them on:
+
+1. Edit the clone's `.claude/settings.json` for your stack, as the section above describes.
+2. Copy it into place with `cp -n "$KIT/.claude/settings.json" .claude/settings.json`.
+3. Fill in the Project section at the end of `AGENTS.md`: stack, commands, verification tools, patterns, and gotchas. The playbook sends agents there for your project's commands.
 
 ## Day to day
 
