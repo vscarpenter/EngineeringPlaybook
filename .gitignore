@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Claude Code files that belong to one person or one machine.
+# Claude Code keeps settings.local.json out of git when it creates the file.
+# A hand-made one is not covered, so it is listed here too.
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+
+# Output from local analysis tooling
+.blume/
+
+# Nothing here reads an env file. This keeps one from going public by accident.
+.env
+.env.*
+
+# In case someone installs a formatter locally for the hooks
+node_modules/

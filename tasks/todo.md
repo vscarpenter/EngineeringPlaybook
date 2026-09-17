@@ -1,89 +1,74 @@
-# Todo: independent review as a completion gate
+# Todo: public release files
 
-Tier: Non-trivial. It changes the contract of a kit that ships, across `AGENTS.md` and the reference. Vinny approved the design in chat on 2026-09-17 and asked for one pass. Spec: `tasks/spec.md`.
+Tier: Non-trivial. `INSTALL.md` is a public contract that other people's agents will execute. Vinny approved the design in chat on 2026-09-17: MIT, README plus INSTALL.md, trim `CLAUDE.md`. Spec: `tasks/spec.md`. Branch: `docs/public-release`.
 
 ## Verification (defined first)
 
-- A check script with one test per stub in the spec. It must fail first, for the right reason, then pass.
-- Every quotation on the explainer still matches the reference word for word.
-- A read-only reviewer in a fresh context reviews the diff against `tasks/spec.md`. This is the new rule applied to itself.
-- The explainer's structural checks from the last task still pass.
+- A check script with one test per stub in the spec. Red first, then green.
+- A dry run: a fresh agent follows `INSTALL.md` in a fixture repository. An install guide for agents is proven by an agent installing from it.
+- An independent review of the diff against Vinny's request and the spec, by a read-only agent in a fresh context (1.4).
 
 ## Plan
 
-- [x] Write the check script and confirm red (8 of 11 failing, each on missing new text)
-- [x] Edit reference 1.4
-- [x] Edit reference 6.2 review prompt
-- [x] Edit reference Part 5
-- [x] Edit `AGENTS.md` lines 31 and 74
-- [x] Confirm green on the playbook tests (10 of 10; `AGENTS.md` held at 84 lines)
-- [x] Update the explainer: counts, figure, Definition of Done, Review step
-- [x] Confirm green on the explainer tests
-- [x] Independent review of the diff, then triage (2 blocking, 13 important, 8 nits)
-- [x] Correct the spec, take the tests red again, fix, confirm green (11 of 11)
-- [x] Republish the Artifact at the same URL (version 2)
-- [x] Handoff: Review, Resuming From Here, lessons, memory
+- [x] Check script, confirm red (6 of 9 failing, each on a missing file or a named companion)
+- [x] `.gitignore` (all three Claude Code entries confirmed in the docs)
+- [x] `LICENSE` (matches GitHub's MIT template)
+- [x] Trim `CLAUDE.md` (three bullets removed, nothing else touched)
+- [x] `INSTALL.md`
+- [x] `README.md`
+- [x] Correct the errors found while checking docs (a lesson, and two explainer sentences)
+- [x] Green, then commit each unit
+- [x] Dry run 1, Python fixture: correct install, 18 problems with the guide. Guide restructured.
+- [x] Independent review: 3 blocking, 11 important, 4 nits. Spec corrected, tests red, fixes, green (11 of 11).
+- [x] Dry run 2 on the restructured text, JavaScript fixture: correct install, no trap fired, 22 unclear points. 20 settled.
+- [x] Handoff
 
 ## Assumptions
 
-- No version bump and no Appendix A entry. Vinny called that his decision and has not made it.
-- The explainer's line counts get recomputed from the files after every edit to the reference.
-- One review round, as approved. The fixes made after the review were not re-reviewed.
+- The copyright line reads "Copyright (c) 2026 Vinny Carpenter", the name the reference already carries.
+- Adopters satisfy the MIT notice by keeping a copy of `LICENSE` inside the copied skill folder.
+- The quick start clones the default branch, so it works only after this branch merges to `main`.
 
 ## Review
 
-The change landed in eight edits, not the five quoted at approval. The three extra edits all come from one finding, I4, explained below.
+### What the verification found
 
-### Fixed after review
+- Dry run 1 produced a correct install and showed the guide's approval gate sat before the hook changes. The person approved a settings file that never landed. The guide now plans in steps 1 to 5, asks once, then writes.
+- The independent review found that "run each command once" let an agent run a deploy or a publish before any plan. It also found that a fetched URL can reach an agent as a summary. Both fixed. The quick start now clones first.
+- Dry run 2 ran the restructured text end to end. The agent stopped at a symlinked `CLAUDE.md`, never ran `deploy`, `release`, `install`, or `audit`, and merged both files as pure insertions (83 and 9 added lines, 0 removed).
+- Checking claims against the Claude Code docs caught three of my own errors: hooks are not snapshotted at session start, exit code 2 does not block on `PostToolUse`, and a `Stop` hook cannot loop forever.
 
-- B1: `AGENTS.md:31` now ends with "Playbook 1.4." Without the pointer, an agent obeying "do not load it otherwise" never reads the five steps.
-- B2: the reviewer now gets the original request or ticket and the spec, and the prompt says to flag where they differ. The author writes the spec, so a spec-only review passes a faithfully built misreading.
-- I1: only a trivial change with no PR skips the reviewer. The first wording contradicted "before any PR".
-- I2: the Part 5 checkbox states its condition, like its neighbours do.
-- I4: the approved design calls the unattended case a stop condition, but the 1.2 list is closed and did not carry it. My spec wrongly put the 1.2 edit out of scope. Corrected the spec, then added the condition to 1.2, to the `AGENTS.md` stop list, and to the explainer's stop list.
-- I5, in part: "cannot resolve" is now "can neither fix nor show to be wrong".
-- I7, in part: "in the PR description when there is one", and the spec Goal no longer claims every finding gets a recorded outcome.
-- I9: step 2 cites 6.2, not all of Part 6.
-- I10: "correctness" and "maintainability" are back in the Cover list. Both were in Vinny's original words.
-- N2: the explainer said a reviewer is read-only and fresh. The rule says "or". The page now matches. The "Unproven done" panel also mentions triage.
-- N4: the 25-word sentence on `AGENTS.md:31` is now 22 words, and it regained its "by".
-- N5: "a concrete failure scenario where one exists", so the form cannot suppress a readability nit.
-- I13 and N8, in part: two structural tests added. One fails if 1.4 cites a stop condition that 1.2 lacks. One fails if the page's stop list and the 1.2 list differ in length.
+### Review findings fixed
+
+B1 pre-gate commands, B2 dry run on the final structure, B3 clone before reading, I1 artifacts from tests, I2 the JSON comma, I3 missing `jq` or shell, I4 stop-and-ask preconditions, I5 the manual install, I6 three facts against the docs, I8 pinning and `INSTALLED_FROM`, I9 other harnesses and scratch clones, N1 the hook index, N2 `.env` in `.gitignore`. I7 and I10 fixed by disclosure in `README.md` and `INSTALL.md`. I11 answered with two structural tests: the hooks table against `settings.json`, and `bash -n` on every published shell block.
 
 ### Declined, with reasons
 
-- I3, define "trivial": the gap predates this change. Section 1.3 and the elegance check already gate on "non-trivial" with no definition. A definition is a new edit to 1.3 and needs Vinny's approval.
-- I5, the rest: whether an author may ever decline a BLOCKING finding alone is a policy choice beyond the approved design.
-- I6, a bounded re-review: Vinny approved a single review round.
-- I7, the rest: recording an outcome for every fixed finding adds ceremony with no reader. The diff shows the fixes. `todo.md` resetting per task is existing 1.6 design, and git keeps the history.
-- I8: adding declined findings to the 4.2 PR description list is an edit to 4.2, outside the approved scope. Performance and observability were not in Vinny's list.
-- I9, the rest: amending the `SKILL.md` gotcha is outside the approved scope.
-- I11: the playbook assumes git throughout (1.6, Part 4), so a no-git fallback is speculative for the repositories it targets. When no fresh context is available, the Part 5 box stays unticked, which already means not done.
-- I12: the version and Appendix A are Vinny's decision. Appendix A describes what changed from v14 to v1.0, and "independent review before PR" was true of v1.0.
-- I13, the rest: committing the structural tests adds a file to a kit that gets copied elsewhere. Recommended, but not approved.
-- N1, "review gate" has two meanings: the phrase in 1.2 predates this change, and context separates the two.
-- N2, the rest: `CLAUDE.md:10` and the 7.4 example say "before opening a PR", which is still a valid trigger. `CLAUDE.md` is out of scope.
-- N3, one name for the reviewer: "subagent" already appears in the old line 122 and in 1.8.
-- N6: the 7.4 advice on cheap models and concise summaries predates this change.
-- N7: a Part 8 red flag is outside the approved scope.
-- N8, the rest: no baseline snapshot exists for the untouched files, so a test cannot prove they are unchanged. The reviewer checked their modification times.
+- I7, fix the hooks: out of scope by the spec. Disclosed, and raised with Vinny below.
+- I8, no tag exists: tags and releases are out of scope. Raised below.
+- I10, reference 7.5 still says "Exit code 2 blocks": the reference is out of scope here. Raised below.
+- I11, commit the check script: Vinny's open decision from the last task.
+- I11, fetch the quick-start URL in a test: the branch is not pushed, so there is nothing to fetch.
+- N3, no next-steps artifact: adoption advice goes to Vinny in chat. He decides what becomes a file.
+- N4, a gmail address and session URLs in public history: both come from Vinny's own commit conventions.
+- Dry run 2, items 16 and 19: npm rotating its own logs, and an empty `git diff` on a symlink. Neither misleads an agent.
 
-### Deviations
+### Not verified
 
-- The explainer's second round of edits ran through a script, so the format hook did not fire on them. Biome left this file unchanged on every earlier write.
-- Red-first cannot be proven from history, because this directory has no git. Both red runs are in the session transcript.
+- The clone from GitHub. Both dry runs cloned the local branch, because `main` on GitHub lacks these files.
+- The final `INSTALL.md` differs from the text dry run 2 executed by about 22 lines. All are clarifications that run asked for. None changes the flow.
+- The paths the fixtures did not reach: a repository that really has Biome installed, a pnpm or yarn project, an invalid `settings.json`, a non-git folder, Windows, and an upgrade over an earlier install.
+- Both dry-run agents ran under this repository's hooks and had its `AGENTS.md` in context. An adopter's agent starts colder.
 
 ## Resuming From Here
 
-- Done: the rule is in 1.2, 1.4, 6.2, and Part 5 of the reference, and on `AGENTS.md` lines 17, 31, and 74. The reference is 640 lines and `AGENTS.md` is 84. The explainer matches and is live as version 2 at https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh.
-- To republish after an edit: `perl -ne 'print unless /^\s*(<!doctype|<\/?html|<\/?head>|<\/?body>|<meta\s)/i' docs/explainer.html`, then publish the result with that URL.
-- Snapshots of the three files before this change sit in the session scratchpad under `before/`. They do not survive the session.
-- Blockers: no git repository, so nothing is committed. No test suite lives in the repository. The 11 checks live in the session scratchpad.
+- Done: all work is committed on `docs/public-release`, and the tree is clean. Nothing is pushed. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
+- Next: Vinny decides whether to push and open a PR. The quick start works only once this is on `main`.
+- The 11 release checks, the 11 review-rule checks, and both fixtures live in the session scratchpad. They do not survive the session.
 - Needs decision, all Vinny's:
-  1. Bump to v1.1 and add an Appendix A entry?
-  2. Define "trivial" in 1.3? His global tiers already have a definition to borrow.
-  3. May an author decline a BLOCKING finding alone, or must it go to a human?
-  4. Add declined findings to the 4.2 PR description list, and amend the `SKILL.md` gotcha about Part 6?
-  5. Commit the structural checks, so the explainer cannot drift silently?
-  6. Do `tasks/` and `docs/` belong in a kit that gets copied into other repositories?
-  7. The `CLAUDE.md` rewrite from earlier on 2026-09-17 is still unapplied.
+  1. Push `docs/public-release` and open a PR?
+  2. Fix the shipped hooks. The `Stop` hook cannot block on a type error, and bare `npx tsc` fetches an unrelated package. `pip-audit` audits the active environment. `npm audit` needs a lockfile.
+  3. Reference 7.5 says exit code 2 "blocks" and that a `Stop` hook can "loop the session forever". The docs say otherwise for `PostToolUse` and cap continuations at eight. Reference 1.9 promises a secret-scanning hook that does not ship.
+  4. Tag a release, so adopters can pin to a name and not a hash.
+  5. Publish the explainer, by GitHub Pages or another host, so the README can link to a rendered page.
+  6. Still open from the last task: a version bump, a definition of "trivial", declining a BLOCKING finding alone, 4.2, and committing the structural checks.
