@@ -96,10 +96,10 @@ Every hook needs `jq`. Each one acts only on tools the project already has, so a
 | Hook | What the kit's version assumes | Plan when the repository differs |
 |---|---|---|
 | `PreToolUse` | `jq`. It runs on `Bash` commands. | Keep it. It blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a command that only mentions one of those phrases. Tell the person. |
-| `PostToolUse` | Two commands. The first formats with Biome, and only when `node_modules/.bin/biome` exists. | Keep it for a Biome project. For another formatter, swap the command, and only if this machine has that formatter. With neither, remove the command. |
-| `PostToolUse` | The second audits the manifest that changed. `npm audit` runs when a `package-lock.json` exists. `pip-audit` runs on a requirements file, or on the folder of a `pyproject.toml`. | Keep it for npm and pip projects. It does nothing without a `package-lock.json`, and nothing until `pip-audit` is installed, so say which applies in your plan. A pnpm, yarn, or uv project needs its own audit command. |
+| `PostToolUse` | Two commands. The first formats with Biome, only when `node_modules/.bin/biome` exists, and only files inside the project. | Keep it for a Biome project. For another formatter, swap the command, and only if this machine has that formatter. With neither, remove the command. |
+| `PostToolUse` | The second runs `npm audit` at the project root when `package.json` or its lockfile changes. It needs a `package-lock.json` or an `npm-shrinkwrap.json`. | Keep it for an npm project. It does nothing without one of those lockfiles, so say so in your plan. A Python, pnpm, yarn, or uv project needs its own audit command. Never wire in `pip-audit -r`, because it installs the requirements to resolve them. |
 | `SessionStart` | `git`, and a `tasks/` folder that may not exist yet | Keep it. It prints the task files and the last five commits into context. |
-| `Stop` | `npm test`, then `node_modules/.bin/tsc --noEmit` when `tsconfig.json` exists. Only when `package.json` exists. | Use the project's real test and type check commands. Keep the `stop_hook_active` check, or a suite that cannot pass keeps sending the agent back to work. |
+| `Stop` | `npm test`, then `node_modules/.bin/tsc --noEmit` when `tsconfig.json` exists. Only when `package.json` has a test script and `npm` is installed. | Use the project's real test and type check commands. Keep the `stop_hook_active` check, or a suite that cannot pass keeps sending the agent back to work. |
 
 Two rules settle the hard cases:
 

@@ -520,7 +520,7 @@ Review only. Report findings tagged BLOCKING, IMPORTANT, or NIT. Do not edit fil
 Hooks enforce mechanically what prose enforces by hope. Facts that matter:
 
 - Hooks receive a **JSON payload on stdin**. Read fields with `jq`, for example `jq -r '.tool_input.file_path'`. There is no `$CLAUDE_FILE_PATH` variable. `$CLAUDE_PROJECT_DIR` is available.
-- **Exit code 2 feeds stderr back to the model.** On `PreToolUse` it also blocks the call, and on `Stop` it sends the agent back to work. On `PostToolUse` the tool already ran, so nothing is blocked. Exit 0 continues. Other non-zero codes log an error and continue.
+- **Exit code 2 means something different for each event.** On `PreToolUse` it blocks the call and shows stderr to the model. On `Stop` it sends the agent back to work with that stderr. On `PostToolUse` the tool already ran, so the model sees the stderr and nothing is blocked. On `SessionStart` only the user sees it. Check the docs for any other event. Exit 0 continues. Other non-zero codes log an error and continue.
 - To re-inject state after compaction, use `SessionStart` with the `compact` matcher (a `PostCompact` event also exists; the `SessionStart` pattern is the documented one and its stdout is added to context).
 - Useful events for this playbook: `PreToolUse` (block destructive commands), `PostToolUse` (format, audit), `SessionStart` (re-inject `tasks/`), `Stop` (verification gate). See the shipped `.claude/settings.json` for a working example.
 - A `Stop` hook that exits 2 makes the model keep working. Check `stop_hook_active` in the payload and exit 0 when it is true. Without that check, a suite that cannot pass sends the agent back until Claude Code ends the turn after 8 consecutive blocks.
@@ -534,7 +534,7 @@ Hooks enforce mechanically what prose enforces by hope. Facts that matter:
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path'); b=\"$CLAUDE_PROJECT_DIR/node_modules/.bin/biome\"; [ -x \"$b\" ] && \"$b\" format --write \"$f\" >/dev/null 2>&1 || true"
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); cd \"$CLAUDE_PROJECT_DIR\" || exit 0; b=node_modules/.bin/biome; [ -n \"$f\" ] && [ -x \"$b\" ] && \"$b\" format --write \"$f\" >/dev/null 2>&1; true"
           }
         ]
       }

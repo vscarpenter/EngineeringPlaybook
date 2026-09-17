@@ -46,7 +46,7 @@ The reference names companions that this repository does not include. Add your o
 - Helper skills: `/qspec`, `/qcheck`, and `/tdd`
 - Reviewer and builder subagents: `build-validator`, `code-simplifier`, `security-reviewer`, `tdd-enforcer`, and `verify-app`
 - Path-scoped rules in `.claude/rules/`
-- A secret-scanning hook. Section 1.9 of the reference expects one before every commit.
+- A secret-scanning hook. Section 1.9 of the reference tells agents to run a scanner before commit when the project has one.
 
 ## Quick start
 
@@ -72,9 +72,9 @@ To pin what you install, tell your agent which commit to check out in the clone.
 Hooks run shell commands on your machine with your permissions. Read `.claude/settings.json` before you trust it. Each hook acts only on tools your project already has, and none of them downloads anything.
 
 - Every hook needs `jq` and a POSIX shell. Without `jq`, the hook that blocks destructive commands lets everything through.
-- The format hook runs Biome only when your project has it installed, at `node_modules/.bin/biome`. Without Biome it does nothing. Swap in your own formatter if you use another one.
-- The audit hook checks the manifest that just changed. `npm audit` runs for `package.json` when a `package-lock.json` exists. `pip-audit` runs on a changed requirements file, or on the folder of a changed `pyproject.toml`. pnpm, yarn, and uv projects need their own command.
-- The `Stop` hook runs `npm test` when a `package.json` exists, then `tsc --noEmit` when your project has TypeScript installed. A failure sends the agent back to work before it can finish. Replace the commands with your own. On a slow suite, consider leaving this gate to CI.
+- The format hook runs Biome only when your project has it installed, at `node_modules/.bin/biome`, and only on files inside your project. Without Biome it does nothing. Swap in your own formatter if you use another one.
+- The audit hook runs `npm audit` at the project root when `package.json` or its lockfile changes. It needs a `package-lock.json` or an `npm-shrinkwrap.json`, and does nothing without one. Python, pnpm, yarn, and uv projects need their own command. The kit runs no Python audit, because `pip-audit -r` installs the requirements to resolve them.
+- The `Stop` hook runs `npm test` when `package.json` has a test script, then `tsc --noEmit` when your project has a `tsconfig.json` and TypeScript installed. A failure sends the agent back to work before it can finish. Replace the commands with your own. On a slow suite, consider leaving this gate to CI.
 - The `PreToolUse` hook blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a harmless command that only mentions one of those phrases.
 - Hooks are a Claude Code feature. Other harnesses ignore `.claude/settings.json`, so those rules rest on CI and on the agent.
 
