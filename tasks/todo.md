@@ -22,6 +22,7 @@ The previous task (public release files) merged as PR 1. Its spec and review liv
 - [x] Second, narrow review of the three hook commands: no blocker, 3 important, 2 nits
 - [x] Spec updated, tests red (4 of 41), fixes, green. Nine mutations, nine caught.
 - [x] Handoff
+- [x] CI: `.github/workflows/hook-tests.yml` runs the hook tests on Ubuntu and macOS, under `sh`, `bash`, and `dash`. Vinny asked for it on 2026-09-17.
 
 ## Assumptions
 
@@ -64,12 +65,10 @@ Review 2: a `..` step escaping the project, invalid JSON passing the `Stop` hook
 
 ## Resuming From Here
 
-- Done: all work is committed on `fix/hook-defects`, and the tree is clean. Nothing is pushed. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
+- Done: all work is committed on `fix/hook-defects` and pushed, with a PR open. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
 - Run `bash tests/test_hooks.sh` before and after any hook change. The document checks still live in the session scratchpad and do not survive the session.
 - Needs decision, all Vinny's:
-  1. Push `fix/hook-defects` and open a PR?
-  2. Move the hooks out of one-line JSON strings into script files. Each is now about 500 characters. Script files would be readable and lintable, but the kit would grow a fifth path.
-  3. Run `bash tests/test_hooks.sh` in CI.
-  4. The audit hook fires on `Edit|Write` only, so `npm install <package>` through Bash is never audited.
-  5. A Python audit that does not install what it audits, for example a pinned-only static mode, tested against a real `pip-audit`.
-  6. Still open from earlier tasks: a version bump, a definition of "trivial", declining a BLOCKING finding alone, 4.2, a release tag, publishing the explainer, and committing the document checks.
+  1. Move the hooks out of one-line JSON strings into script files. Each is now about 500 characters. Script files would be readable and lintable, but the kit would grow a fifth path.
+  2. The audit hook fires on `Edit|Write` only, so `npm install <package>` through Bash is never audited.
+  3. A Python audit that does not install what it audits, for example a pinned-only static mode, tested against a real `pip-audit`.
+  4. Still open from earlier tasks: a version bump, a definition of "trivial", declining a BLOCKING finding alone, 4.2, a release tag, publishing the explainer, and committing the document checks.
