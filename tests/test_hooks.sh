@@ -22,6 +22,7 @@ trap 'rm -rf "$SANDBOX"' EXIT
 PASSED=0
 FAILED=0
 PROBLEMS=""
+PROJECTS=0
 
 # Find a hook command by a word that only that command contains. Indexes would
 # break the day someone reorders the hooks.
@@ -39,7 +40,8 @@ PRE="$(hook PreToolUse Blocked)"
 # The hook's PATH holds the stubs and links to the few real tools the hooks
 # use. A real npm, npx, or pip-audit on this machine can never satisfy a test.
 new_project() { # new_project [folder name]
-  PROJ="$SANDBOX/${1:-project}-$RANDOM"
+  PROJECTS=$((PROJECTS + 1))
+  PROJ="$SANDBOX/${1:-project}-$PROJECTS"
   BIN="$PROJ/.stub-bin"
   CALLS="$PROJ/.calls"
   RUN_DIR="$PROJ"
@@ -47,7 +49,7 @@ new_project() { # new_project [folder name]
   mkdir -p "$BIN"
   : >"$CALLS"
   for tool in jq grep cat git; do
-    ln -s "$(command -v "$tool")" "$BIN/$tool"
+    real="$(command -v "$tool")" && ln -s "$real" "$BIN/$tool"
   done
 }
 
@@ -84,7 +86,7 @@ problem() { PROBLEMS="$PROBLEMS        $1"$'\n'; }
 
 expect_status() { [ "$STATUS" -eq "$1" ] || problem "exit status was $STATUS, expected $1"; }
 expect_called() { grep -qxF -- "$1" "$CALLS" || problem "expected exactly [$1], saw [$(calls)]"; }
-expect_no_call() { ! grep -q -- "^$1\( \|\$\)" "$CALLS" || problem "must never call [$1], saw [$(calls)]"; }
+expect_no_call() { ! grep -Eq -- "^$1( |\$)" "$CALLS" || problem "must never call [$1], saw [$(calls)]"; }
 expect_no_calls() { [ ! -s "$CALLS" ] || problem "expected no tool to run, saw [$(calls)]"; }
 expect_ran_in() { grep -qxF -- "$1 ran in $(cd "$2" && pwd -P)" "$CALLS.cwd" 2>/dev/null || problem "$1 did not run in $2"; }
 expect_err() { grep -qF -- "$1" "$PROJ/.err" || problem "stderr lacks [$1]"; }
@@ -168,8 +170,43 @@ should_exit_0_when_there_is_no_package_json() {
 should_do_nothing_when_npm_is_missing() {
   new_project
   echo '{"scripts": {"test": "node --test"}}' >"$PROJ/package.json"
+  with_typescript 1
   run_hook "$STOP" '{"stop_hook_active": false}'
   expect_status 0
+  expect_no_calls
+}
+
+# A trailing comma must not end the session ungated. Before the test-script
+# guard, npm test failed here and the hook blocked. It still has to.
+should_block_when_package_json_does_not_parse() {
+  js_project
+  echo '{"scripts": {"test": "node --test"},}' >"$PROJ/package.json"
+  run_hook "$STOP" '{"stop_hook_active": false}'
+  expect_status 2
+  expect_err "package.json"
+}
+
+should_do_nothing_for_the_npm_init_placeholder_script() {
+  js_project
+  echo '{"scripts": {"test": "echo \"Error: no test specified\" && exit 1"}}' >"$PROJ/package.json"
+  stub "$BIN/npm" 1
+  run_hook "$STOP" '{"stop_hook_active": false}'
+  expect_status 0
+  expect_no_calls
+}
+
+# The spec names one place for each tool. A helpful fallback to whatever tsc
+# or biome sits on PATH would bring back the defect this change removes.
+should_never_fall_back_to_a_tool_on_the_path() {
+  js_project
+  echo '{}' >"$PROJ/tsconfig.json"
+  stub "$BIN/tsc" 1
+  stub "$BIN/biome" 0
+  run_hook "$STOP" '{"stop_hook_active": false}'
+  expect_status 0
+  expect_no_call tsc
+  run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
+  expect_no_call biome
 }
 
 should_do_nothing_when_there_is_no_test_script() {
@@ -264,6 +301,36 @@ should_ignore_a_manifest_outside_the_project() {
   expect_no_calls
 }
 
+should_skip_the_audit_when_npm_is_missing() {
+  new_project
+  echo '{}' >"$PROJ/package.json"
+  with_lockfile
+  run_hook "$AUDIT" "$(wrote "$PROJ/package.json")"
+  expect_status 0
+}
+
+# "$p"/* is a text match, so these two would pass it without a second check.
+should_ignore_a_path_that_climbs_out_of_the_project() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  run_hook "$AUDIT" "$(wrote "$PROJ/../elsewhere/package.json")"
+  expect_status 0
+  run_hook "$FORMAT" "$(wrote "$PROJ/src/../../elsewhere/a.js")"
+  expect_status 0
+  expect_no_calls
+}
+
+should_ignore_a_sibling_folder_with_the_same_prefix() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  run_hook "$AUDIT" "$(wrote "$PROJ-backup/package.json")"
+  run_hook "$FORMAT" "$(wrote "$PROJ-backup/src/a.js")"
+  expect_status 0
+  expect_no_calls
+}
+
 should_ignore_a_file_that_is_not_a_manifest() {
   js_project
   with_lockfile
@@ -340,6 +407,28 @@ should_work_when_the_project_path_has_spaces() {
   run_hook "$AUDIT" "$(wrote "$PROJ/package.json")"
   expect_called "npm [audit] [--audit-level=high]"
   expect_ran_in npm "$PROJ"
+}
+
+should_work_when_the_project_dir_ends_in_a_slash() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  PROJECT_DIR_VALUE="$PROJ/"
+  run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
+  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  run_hook "$AUDIT" "$(wrote "$PROJ/package.json")"
+  expect_called "npm [audit] [--audit-level=high]"
+}
+
+# Unquoted, "$p" would be a glob pattern, and [p] would match a plain p.
+should_work_when_the_project_path_has_glob_characters() {
+  js_project "my [p]roject"
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
+  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  run_hook "$AUDIT" "$(wrote "$SANDBOX/my project-$PROJECTS/package.json")"
+  expect_no_call npm
 }
 
 should_pass_a_path_with_a_quote_as_one_argument() {

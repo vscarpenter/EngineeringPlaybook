@@ -31,7 +31,10 @@ A hook acts only when the tool and the input it needs are already present. It ne
 - `package.json` changes in a project with no `package-lock.json`: no audit, no failure.
 - A Python manifest changes, with `pip-audit` installed: nothing runs. Python projects bring their own audit.
 - A file named `my-package.json`, or a `package.json` under `node_modules/`, or a manifest outside the project: nothing runs.
-- `npm` is missing, or `package.json` has no test script: the `Stop` hook does nothing.
+- `npm` is missing, or `package.json` has no test script, or only the `npm init` placeholder: the `Stop` hook does nothing.
+- `package.json` does not parse: the `Stop` hook blocks and says so. A second review caught the first guard passing it silently.
+- The written path climbs out of the project with `..`, or names a sibling folder that shares the project's prefix: nothing runs.
+- `CLAUDE_PROJECT_DIR` ends in a slash, or holds glob characters such as `[`.
 - The written file sits outside the project: the format hook leaves it alone.
 - `CLAUDE_PROJECT_DIR` is unset: every hook exits 0.
 - The formatter fails: the write still stands and nothing blocks.
@@ -58,7 +61,7 @@ A hook acts only when the tool and the input it needs are already present. It ne
 8. The format hook runs only `node_modules/.bin/biome`, never `npx`, and never blocks. It runs from the project root, and only on a file inside the project.
 9. Reference 7.5 says what exit code 2 does for each event, and states the limit of 8 consecutive blocks. Reference 1.9 promises no hook the kit lacks. The 7.5 example matches the shipped hooks. The reference keeps its line count.
 10. `README.md`, `INSTALL.md`, and the `CLAUDE.md` hooks bullet describe the hooks as they now behave, drop the defect disclosures, and say how to run the tests. The explainer's hook table matches.
-11. The `Stop` hook does nothing without `npm` or a test script. Every hook exits 0 when `CLAUDE_PROJECT_DIR` is unset.
+11. The `Stop` hook does nothing without `npm`, a test script, or with only the `npm init` placeholder. It blocks when `package.json` does not parse. Every hook exits 0 when `CLAUDE_PROJECT_DIR` is unset. No hook falls back to a `tsc`, `biome`, or `npm` it finds some other way than the spec names.
 12. The tests isolate `PATH` to the stubs, log each argument separately so a quoting bug fails a test, and can run against another settings file or shell.
 13. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.
 
@@ -84,6 +87,14 @@ A hook acts only when the tool and the input it needs are already present. It ne
 - `should_do_nothing_when_npm_is_missing` (11)
 - `should_do_nothing_when_there_is_no_test_script` (11)
 - `should_exit_0_when_the_project_dir_is_unset` (11)
+- `should_block_when_package_json_does_not_parse` (11)
+- `should_do_nothing_for_the_npm_init_placeholder_script` (11)
+- `should_skip_the_audit_when_npm_is_missing` (11)
+- `should_never_fall_back_to_a_tool_on_the_path` (11)
+- `should_ignore_a_path_that_climbs_out_of_the_project` (6, 8)
+- `should_ignore_a_sibling_folder_with_the_same_prefix` (6, 8)
+- `should_work_when_the_project_dir_ends_in_a_slash` (edge case)
+- `should_work_when_the_project_path_has_glob_characters` (edge case)
 - `should_pass_a_path_with_a_quote_as_one_argument` (12)
 - `should_ignore_a_file_that_is_not_a_manifest` (4)
 - `should_exit_2_and_show_findings_when_an_audit_fails` (7)
