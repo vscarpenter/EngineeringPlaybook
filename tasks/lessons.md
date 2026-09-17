@@ -5,7 +5,9 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 ## Tooling
 
 - A bare `npx <name>` runs whatever package owns that name on npm. `npx biome` fetched an unrelated `biome@0.3.3`, and the hook's `|| true` hid it. Use the scoped name, `@biomejs/biome`, and check the npx cache after changing a hook.
-- Claude Code reads hooks at session start. After editing `.claude/settings.json`, approve the change in `/hooks` or restart before trusting it.
+- Claude Code normally picks up hook edits through its file watcher, with no restart. An earlier version of this lesson said hooks load once at session start. That was out of date. Check the current docs before stating how the harness behaves.
+- Exit code 2 blocks only where the event can block. On `PostToolUse` the tool already ran, so exit 2 shows stderr to the model and blocks nothing.
+- In shell, `a && b || true` swallows a failure of `b`. The shipped `Stop` hook has that shape around `tsc`, so a type error never blocks. Use `! a || b`.
 - The `PreToolUse` hook matches the raw command string. A Bash command that only mentions a blocked phrase, even inside quotes, gets blocked.
 - macOS `/usr/bin/tidy` dates from 2006 and rejects HTML5 elements. Validate HTML with a parser check, not with `tidy`.
 - Pipe command output. Do not write temp files to `/tmp` and delete them. Use the session scratchpad when a file is needed.
@@ -21,6 +23,17 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 - When a spec excludes an edit, check the exclusion against the approved design, not against the edit count quoted at approval. A count is an estimate. The design is the contract.
 - Presence tests pass under contradiction. For prose rules, add a structural test for each cross-section claim, and let the independent review hunt for the rest.
 - Appending a clause to a long existing sentence makes it longer. Add a new short sentence.
+
+## Writing instructions for other people's agents
+
+- Test an install guide by having a fresh agent follow it in a fixture repository. The first dry run found 18 problems that 9 passing checks missed.
+- An approval gate covers only what comes after it. Check everything an agent can do before the gate: running commands, not only writing files. A stranger's manifest can hold a deploy or a publish.
+- A URL handed to an agent can arrive as a summary, because fetch tools often pass the page through a small model. Tell the agent to clone and read the file.
+- Plan first, ask once, write once. A gate placed between two edits approves a file that never lands.
+- Rewriting a guide after its dry run voids the dry run. Run it again on the final text.
+- Build traps into fixtures: a declared tool that is not installed, a `deploy` script that leaves a marker, a symlinked `CLAUDE.md`, a settings file that needs a JSON comma.
+- A subagent runs under this project's hooks, even when it works in another folder. The Biome hook reformatted a fixture's JSON to tabs.
+- A word-match test needs word boundaries. "overwrite" matched a search for the "Write" step.
 
 ## Front end
 
