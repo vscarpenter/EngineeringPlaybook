@@ -37,7 +37,7 @@ An illustrated explainer lives at [`docs/explainer.html`](docs/explainer.html). 
 | `.claude/settings.json` | The hooks: block destructive commands, format, audit dependencies, restore task state, gate on tests |
 | `.claude/skills/engineering-playbook/` | The full reference, and a routing table from a need to a section |
 
-Everything else here belongs to this repository: this README, `INSTALL.md`, `docs/`, `tests/`, and `tasks/`. The `tasks/` folder is the playbook applied to its own development.
+Everything else here belongs to this repository: this README, `INSTALL.md`, `docs/`, `tests/`, `tasks/`, and `.github/`. The `tasks/` folder is the playbook applied to its own development.
 
 ### Not included yet
 
@@ -116,7 +116,7 @@ The hooks are shell one-liners in `.claude/settings.json`, and they have tests. 
 bash tests/test_hooks.sh
 ```
 
-Each test runs a hook against stub tools that record how they were called. Nothing real runs, and nothing touches the network.
+Each test runs a hook against stub tools that record how they were called. Nothing real runs, and nothing touches the network. CI runs the same tests on Ubuntu and macOS for every pull request, under `sh`, `bash`, and `dash`.
 
 ## License
 

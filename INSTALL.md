@@ -27,7 +27,7 @@ The kit is four paths. Copy nothing else.
 | `.claude/settings.json` | The hooks that enforce the mechanical rules | Claude Code |
 | `.claude/skills/engineering-playbook/` | The full reference and a routing table to its sections | Claude Code as `/engineering-playbook`. Any agent, by file path. |
 
-`README.md`, `INSTALL.md`, `docs/`, `tests/`, and `tasks/` belong to the kit's own repository. Leave them behind. `LICENSE` travels with the kit, as step 3 explains.
+`README.md`, `INSTALL.md`, `docs/`, `tests/`, `tasks/`, and `.github/` belong to the kit's own repository. Leave them behind. `LICENSE` travels with the kit, as step 3 explains.
 
 The hooks and the skill command are Claude Code features. If the person uses another harness, ask before you plan `CLAUDE.md` or the hooks. `AGENTS.md` and the reference folder are enough there, and the rules the hooks enforce then rest on CI and on the agent.
 
