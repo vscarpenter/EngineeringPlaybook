@@ -62,7 +62,7 @@ B1 pre-gate commands, B2 dry run on the final structure, B3 clone before reading
 
 ## Resuming From Here
 
-- Done: 11 commits on `docs/public-release`, tree clean. Nothing is pushed. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
+- Done: all work is committed on `docs/public-release`, and the tree is clean. Nothing is pushed. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
 - Next: Vinny decides whether to push and open a PR. The quick start works only once this is on `main`.
 - The 11 release checks, the 11 review-rule checks, and both fixtures live in the session scratchpad. They do not survive the session.
 - Needs decision, all Vinny's:
