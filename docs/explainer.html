@@ -1118,7 +1118,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
       <h2>What the machine enforces</h2>
       <p class="refs">Playbook 7.5 · .claude/settings.json</p>
       <div class="prose">
-        <p>A hook runs whether or not the agent remembers the rule. Claude Code runs these commands outside the model, so they take no attention away from the task.</p>
+        <p>A hook runs whether or not the agent remembers the rule. Claude Code runs these commands outside the model, so they take no attention away from the task. Each one acts only on tools the project already has, and none of them downloads anything.</p>
       </div>
 
       <div class="table-wrap" tabindex="0" role="region" aria-labelledby="cap-hooks">
@@ -1137,7 +1137,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
             <tr>
               <th scope="row"><code>PostToolUse</code></th>
               <td>After every file write</td>
-              <td>Formats the file with Biome. When a dependency manifest changes, runs <code>npm audit</code> or <code>pip-audit</code>.</td>
+              <td>Formats the file when the project has Biome installed. When a manifest changes, audits that manifest with <code>npm audit</code> or <code>pip-audit</code>.</td>
               <td><span class="exit exit--block">exit 2</span><br>When the audit fails. The write stands, and the agent sees why.</td>
             </tr>
             <tr>

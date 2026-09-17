@@ -27,7 +27,7 @@ The kit is four paths. Copy nothing else.
 | `.claude/settings.json` | The hooks that enforce the mechanical rules | Claude Code |
 | `.claude/skills/engineering-playbook/` | The full reference and a routing table to its sections | Claude Code as `/engineering-playbook`. Any agent, by file path. |
 
-`README.md`, `INSTALL.md`, `docs/`, and `tasks/` belong to the kit's own repository. Leave them behind. `LICENSE` travels with the kit, as step 3 explains.
+`README.md`, `INSTALL.md`, `docs/`, `tests/`, and `tasks/` belong to the kit's own repository. Leave them behind. `LICENSE` travels with the kit, as step 3 explains.
 
 The hooks and the skill command are Claude Code features. If the person uses another harness, ask before you plan `CLAUDE.md` or the hooks. `AGENTS.md` and the reference folder are enough there, and the rules the hooks enforce then rest on CI and on the agent.
 
@@ -91,20 +91,15 @@ List every place where a project rule and a kit rule disagree, wherever the proj
 
 ## 4. Adapt the hooks to this stack
 
-The kit's hooks assume `jq` everywhere and a JavaScript toolchain in three places. Plan a fix for every hook that does not fit this repository.
+Every hook needs `jq`. Each one acts only on tools the project already has, so a hook that does not fit does nothing. None of them downloads a tool. Plan a better command wherever the project has one.
 
 | Hook | What the kit's version assumes | Plan when the repository differs |
 |---|---|---|
 | `PreToolUse` | `jq`. It runs on `Bash` commands. | Keep it. It blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a command that only mentions one of those phrases. Tell the person. |
-| `PostToolUse` | Two commands. The first formats with Biome, run as `npx @biomejs/biome`. | Use the formatter the project already uses and this machine has. Otherwise remove the command. Never leave it in a repository without Biome. `npx` would fetch Biome, and Biome would reformat the project's files to its own defaults. |
-| `PostToolUse` | The second audits dependencies with `npm audit`, or `pip-audit` when it is installed. | Keep it for an npm project that has a `package-lock.json`. With no lockfile, remove it. A pnpm or yarn project needs its own audit command. For a pip project, keep it only if `pip-audit` is installed and the project has dependencies. Bare `pip-audit` checks the active Python environment, not the project, so say that in your plan. |
+| `PostToolUse` | Two commands. The first formats with Biome, and only when `node_modules/.bin/biome` exists. | Keep it for a Biome project. For another formatter, swap the command, and only if this machine has that formatter. With neither, remove the command. |
+| `PostToolUse` | The second audits the manifest that changed. `npm audit` runs when a `package-lock.json` exists. `pip-audit` runs on a requirements file, or on the folder of a `pyproject.toml`. | Keep it for npm and pip projects. It does nothing without a `package-lock.json`, and nothing until `pip-audit` is installed, so say which applies in your plan. A pnpm, yarn, or uv project needs its own audit command. |
 | `SessionStart` | `git`, and a `tasks/` folder that may not exist yet | Keep it. It prints the task files and the last five commits into context. |
-| `Stop` | `npm test`, and only when `package.json` exists | Use the project's real test command. Keep the `stop_hook_active` check, or a suite that cannot pass keeps sending the agent back to work. |
-
-The kit's `Stop` hook has two known defects. Tell the person about both.
-
-- It runs `npx tsc --noEmit` when `tsconfig.json` exists, but a type error never blocks. Its `&& tsc || true` shape swallows the failure.
-- Bare `npx tsc` fetches an unrelated package when TypeScript is not a dev dependency. Keep the type check only when it is one.
+| `Stop` | `npm test`, then `node_modules/.bin/tsc --noEmit` when `tsconfig.json` exists. Only when `package.json` exists. | Use the project's real test and type check commands. Keep the `stop_hook_active` check, or a suite that cannot pass keeps sending the agent back to work. |
 
 Two rules settle the hard cases:
 
