@@ -7,7 +7,7 @@ Resolve all 15 findings from the September 18 release review while keeping insta
 ## Inputs / Outputs
 
 - Input: review of `dabdc2a`, R1 through R15; the user's approval: "let's resolve all 15 actionable issues. The goal is to make this as simple as possible to adopt and use".
-- Output: corrected hooks, one clear installation/upgrade guide, consistent core/reference/explainer, committed regression checks, and an independently reviewed PR.
+- Output: corrected hooks, one clear installation/upgrade guide, consistent core/reference/explainer, committed regression checks, and independently reviewed pull requests.
 
 ## Constraints
 
@@ -18,7 +18,7 @@ Resolve all 15 findings from the September 18 release review while keeping insta
 - This approval covers remediation through spec, plan, implementation, and verification without another approval gate.
 - Preserve unrelated project files, permissions, hooks, and user edits during installation and upgrades.
 - Physical line counts are not a contract. Describe the explainer's structure without freezing document lengths.
-- No release tag, merge, or deployment. Commit, push, and open a PR after verification.
+- No release tag, merge, or deployment. After verification, push two focused stacked PRs: safe adoption (R1-R5), then rule consistency (R6-R15). Keep each under the repository's 400-line non-generated-code limit.
 
 ## Edge Cases
 

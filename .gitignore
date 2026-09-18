@@ -22,3 +22,6 @@ CLAUDE.local.md
 
 # In case someone installs a formatter locally for the hooks
 node_modules/
+
+# Standard-library development checks
+__pycache__/

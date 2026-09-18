@@ -46,7 +46,9 @@ new_project() { # new_project [folder name]
   CALLS="$PROJ/.calls"
   RUN_DIR="$PROJ"
   PROJECT_DIR_VALUE="$PROJ"
-  mkdir -p "$BIN"
+  mkdir -p "$BIN" "$PROJ/src"
+  : >"$PROJ/src/a.js"
+  PHYSICAL_PROJ="$(cd "$PROJ" && pwd -P)"
   : >"$CALLS"
   for tool in jq grep cat git; do
     real="$(command -v "$tool")" && ln -s "$real" "$BIN/$tool"
@@ -363,7 +365,7 @@ should_run_the_local_biome_on_the_written_file() {
   stub "$PROJ/node_modules/.bin/biome" 0
   run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
   expect_status 0
-  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
   expect_no_call npx
 }
 
@@ -403,7 +405,7 @@ should_work_when_the_project_path_has_spaces() {
   run_hook "$STOP" '{"stop_hook_active": false}'
   expect_status 2
   run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
-  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
   run_hook "$AUDIT" "$(wrote "$PROJ/package.json")"
   expect_called "npm [audit] [--audit-level=high]"
   expect_ran_in npm "$PROJ"
@@ -415,7 +417,7 @@ should_work_when_the_project_dir_ends_in_a_slash() {
   stub "$PROJ/node_modules/.bin/biome" 0
   PROJECT_DIR_VALUE="$PROJ/"
   run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
-  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
   run_hook "$AUDIT" "$(wrote "$PROJ/package.json")"
   expect_called "npm [audit] [--audit-level=high]"
 }
@@ -426,7 +428,7 @@ should_work_when_the_project_path_has_glob_characters() {
   with_lockfile
   stub "$PROJ/node_modules/.bin/biome" 0
   run_hook "$FORMAT" "$(wrote "$PROJ/src/a.js")"
-  expect_called "biome [format] [--write] [$PROJ/src/a.js]"
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
   run_hook "$AUDIT" "$(wrote "$SANDBOX/my project-$PROJECTS/package.json")"
   expect_no_call npm
 }
@@ -434,9 +436,10 @@ should_work_when_the_project_path_has_glob_characters() {
 should_pass_a_path_with_a_quote_as_one_argument() {
   js_project
   stub "$PROJ/node_modules/.bin/biome" 0
+  : >"$PROJ/src/it's \"odd\".js"
   run_hook "$FORMAT" "$(wrote "$PROJ/src/it's \"odd\".js")"
   expect_status 0
-  expect_called "biome [format] [--write] [$PROJ/src/it's \"odd\".js]"
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/it's \"odd\".js]"
 }
 
 # With the variable unset, a bare cd "" succeeds and the hook would act on
@@ -467,7 +470,7 @@ should_hold_no_pip_audit_in_settings() {
   ! grep -q 'pip-audit' "$SETTINGS" || problem "settings.json calls pip-audit, which installs what it audits"
 }
 
-# --- Regression guards for the two hooks this change leaves alone --------------
+# --- Destructive-command guard and session context -----------------------------
 
 should_block_a_forced_push_and_a_hard_reset() {
   new_project
@@ -503,6 +506,226 @@ should_start_a_session_cleanly_in_an_empty_project() {
   new_project
   run_hook "$SESSION" '{}'
   expect_status 0
+}
+
+
+# Destructive command strings are passed only to the guard. They are never run.
+should_block_common_git_option_and_refspec_spellings() {
+  new_project
+  for command in \
+    'git -C . push --force origin main' \
+    'git -C "folder with spaces" push -f origin main' \
+    'git -c color.ui=always push --force-with-lease origin main' \
+    'git --git-dir=.git push --force-if-includes origin main' \
+    'git push -vf origin main' \
+    'git branch -d obsolete' \
+    'git -C . branch -D obsolete' \
+    'git branch --delete obsolete' \
+    'git push origin --delete main' \
+    'git push -d origin main' \
+    'git push origin :main' \
+    'git push origin +HEAD:main' \
+    'git push origin +main' \
+    'git push --mirror origin' \
+    'git -C . reset --hard HEAD~1'; do
+    run_hook "$PRE" "$(ran "$command")"
+    [ "$STATUS" -eq 2 ] || problem "guard allowed [$command]"
+    expect_err "Blocked"
+  done
+}
+
+should_block_common_root_and_home_delete_spellings() {
+  new_project
+  for command in \
+    'rm -rf /' \
+    'rm -fr ~' \
+    'rm -r -f "$HOME"' \
+    'rm -f -r "${HOME}"/' \
+    'rm --recursive --force ~/' \
+    'rm --force --recursive "$HOME"/*' \
+    'rm -rf /*' \
+    'rm "$HOME" -rf'; do
+    run_hook "$PRE" "$(ran "$command")"
+    [ "$STATUS" -eq 2 ] || problem "guard allowed [$command]"
+    expect_err "Blocked"
+  done
+}
+
+should_block_lowercase_and_multiline_sql_drops() {
+  new_project
+  for command in 'psql -c "drop table users;"' 'mysql -e "DROP DATABASE example"' $'psql -c "drop\ntable users;"'; do
+    run_hook "$PRE" "$(ran "$command")"
+    [ "$STATUS" -eq 2 ] || problem "guard allowed [$command]"
+  done
+}
+
+should_allow_common_nondestructive_command_controls() {
+  new_project
+  for command in \
+    'git -C . push origin main' \
+    'git push --follow-tags origin main' \
+    'git branch --show-current' \
+    'git reset --soft HEAD~1' \
+    'rm -rf ./build' \
+    'rm -rf /tmp/build' \
+    'psql -c "select * from users"' \
+    'npm test'; do
+    run_hook "$PRE" "$(ran "$command")"
+    [ "$STATUS" -eq 0 ] || problem "guard blocked [$command]"
+  done
+}
+
+should_fail_closed_on_invalid_command_payloads() {
+  new_project
+  for payload in \
+    '' '{' '{}' 'null' '[]' '{"tool_input":{}}' \
+    '{"tool_input":{"command":null}}' \
+    '{"tool_input":{"command":false}}' \
+    '{"tool_input":{"command":[]}}' \
+    '{"tool_input":{"command":42}}' \
+    '{"tool_input":{"command":""}}' \
+    '{"tool_input":{"command":"   "}}' \
+    '{"tool_input":{"command":"npm\u0000 test"}}' \
+    '{"tool_input":{"command":"npm test"}} {}'; do
+    run_hook "$PRE" "$payload"
+    [ "$STATUS" -eq 2 ] || problem "guard allowed invalid payload [$payload]"
+    expect_err "Blocked"
+  done
+}
+
+should_fail_closed_when_jq_is_missing() {
+  new_project
+  rm "$BIN/jq"
+  run_hook "$PRE" '{"tool_input":{"command":"npm test"}}'
+  expect_status 2
+  expect_err "jq"
+}
+
+should_fail_closed_when_grep_is_missing() {
+  new_project
+  rm "$BIN/grep"
+  run_hook "$PRE" '{"tool_input":{"command":"npm test"}}'
+  expect_status 2
+  expect_err "grep"
+}
+
+should_fail_closed_when_the_command_matcher_errors() {
+  new_project
+  rm "$BIN/grep"
+  stub "$BIN/grep" 2
+  run_hook "$PRE" '{"tool_input":{"command":"npm test"}}'
+  expect_status 2
+  expect_err "Blocked"
+}
+
+should_ignore_a_final_file_symlink() {
+  js_project
+  stub "$PROJ/node_modules/.bin/biome" 0
+  for destination in "$PROJ/src/a.js" "$SANDBOX/external.js"; do
+    : >"$destination"
+    ln -s "$destination" "$PROJ/src/link.js"
+    run_hook "$FORMAT" "$(wrote "$PROJ/src/link.js")"
+    expect_status 0
+    expect_no_calls
+    rm "$PROJ/src/link.js"
+  done
+}
+
+should_ignore_a_parent_symlink_leaving_the_project() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  mkdir -p "$SANDBOX/outside-$PROJECTS"
+  : >"$SANDBOX/outside-$PROJECTS/a.js"
+  : >"$SANDBOX/outside-$PROJECTS/package.json"
+  ln -s "$SANDBOX/outside-$PROJECTS" "$PROJ/linked"
+  run_hook "$FORMAT" "$(wrote "$PROJ/linked/a.js")"
+  expect_status 0
+  run_hook "$AUDIT" "$(wrote "$PROJ/linked/package.json")"
+  expect_status 0
+  expect_no_calls
+}
+
+should_allow_an_internal_parent_symlink_using_the_physical_path() {
+  js_project
+  stub "$PROJ/node_modules/.bin/biome" 0
+  ln -s "$PROJ/src" "$PROJ/linked"
+  run_hook "$FORMAT" "$(wrote "$PROJ/linked/a.js")"
+  expect_status 0
+  expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
+}
+
+should_accept_both_spellings_of_a_symlinked_project_root() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  PROJECT_DIR_VALUE="$SANDBOX/project-alias-$PROJECTS"
+  ln -s "$PROJ" "$PROJECT_DIR_VALUE"
+  for root in "$PROJECT_DIR_VALUE" "$PHYSICAL_PROJ"; do
+    : >"$CALLS"
+    run_hook "$FORMAT" "$(wrote "$root/src/a.js")"
+    expect_status 0
+    expect_called "biome [format] [--write] [$PHYSICAL_PROJ/src/a.js]"
+    run_hook "$AUDIT" "$(wrote "$root/package.json")"
+    expect_status 0
+    expect_called "npm [audit] [--audit-level=high]"
+    expect_ran_in biome "$PROJ"
+  done
+}
+
+should_ignore_node_modules_through_a_parent_symlink() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  mkdir -p "$PROJ/node_modules/dependency"
+  : >"$PROJ/node_modules/dependency/a.js"
+  : >"$PROJ/node_modules/dependency/package.json"
+  ln -s "$PROJ/node_modules/dependency" "$PROJ/vendor"
+  run_hook "$FORMAT" "$(wrote "$PROJ/vendor/a.js")"
+  run_hook "$AUDIT" "$(wrote "$PROJ/vendor/package.json")"
+  expect_status 0
+  expect_no_calls
+}
+
+should_ignore_lexical_node_modules_even_when_it_links_inside() {
+  js_project
+  with_lockfile
+  stub "$PROJ/node_modules/.bin/biome" 0
+  : >"$PROJ/src/package.json"
+  ln -s "$PROJ/src" "$PROJ/node_modules/linked"
+  run_hook "$FORMAT" "$(wrote "$PROJ/node_modules/linked/a.js")"
+  run_hook "$AUDIT" "$(wrote "$PROJ/node_modules/linked/package.json")"
+  expect_status 0
+  expect_no_calls
+}
+
+# The hooks append a sentinel before command substitution so trailing newlines
+# in jq and pwd output remain part of the path, not output to be trimmed.
+should_preserve_newlines_in_directory_and_file_names() {
+  js_project $'project\nname'
+  stub "$PROJ/node_modules/.bin/biome" 0
+  directory=$'src\n'
+  filename=$'a.js\n'
+  mkdir -p "$PROJ/$directory"
+  : >"$PROJ/$directory/$filename"
+  run_hook "$FORMAT" "$(wrote "$PROJ/$directory/$filename")"
+  expect_status 0
+  expected="biome [format] [--write] [$PHYSICAL_PROJ/$directory/$filename]"
+  [ "$(cat "$CALLS")" = "$expected" ] || problem "newline path was not preserved as one physical-path argument"
+}
+
+should_ignore_invalid_or_missing_written_files() {
+  js_project
+  stub "$PROJ/node_modules/.bin/biome" 0
+  for payload in '{}' '{"tool_input":{"file_path":42}}' '{'; do
+    run_hook "$FORMAT" "$payload"
+    expect_status 0
+  done
+  run_hook "$FORMAT" "$(wrote "$PROJ/src/missing.js")"
+  expect_status 0
+  run_hook "$FORMAT" "$(wrote 'src/a.js')"
+  expect_status 0
+  expect_no_calls
 }
 
 for name in FORMAT AUDIT STOP SESSION PRE; do
