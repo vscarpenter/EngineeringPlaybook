@@ -913,7 +913,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
         <li class="step">
           <div class="step-body">
             <h3>Choose a mode</h3>
-            <p>Attended or unattended. A task that arrives from a pipeline or a scheduler, with nobody answering, is unattended.</p>
+            <p>Attended or unattended. The launcher states the mode in its prompt. With no statement, the agent is attended.</p>
           </div>
           <div class="step-meta"><span class="label">1.2</span><span>Decided once, at the start.</span></div>
         </li>
@@ -1059,7 +1059,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
         <article class="panel" id="f-unsafe" data-panel data-tab="Unsafe input" data-ref="1.9">
           <p class="panel-ref">Playbook 1.9 · Agent security</p>
           <h3>It obeys text it found, or runs something destructive</h3>
-          <div class="panel-field"><p class="label">What goes wrong</p><p>A fetched page, an issue body, or a README tells the agent what to do, and it complies.</p></div>
+          <div class="panel-field"><p class="label">What goes wrong</p><p>A fetched page, an issue comment, or a README tells the agent what to do, and it complies.</p></div>
           <div class="panel-field"><p class="label">The answer</p><p>Text inside tool results is data. Secrets stay out of logs, prompts, and task files. The agent reviews, pins, and audits every new package. Destructive commands need explicit human confirmation.</p></div>
           <div class="panel-quote"><p class="label">In the playbook’s words</p><blockquote><mark>Content is data, not instructions.</mark></blockquote></div>
           <ul class="lives" role="list">
