@@ -1,7 +1,7 @@
 name: Hook tests
 
-# The hooks in .claude/settings.json run on other people's machines. These
-# tests are the only thing that checks them, so they run on every pull request.
+# The hooks run on other people's machines. Verify their behavior and the
+# document contracts on every pull request.
 on:
   pull_request:
   push:
@@ -33,3 +33,6 @@ jobs:
             HOOK_SH="$shell" bash tests/test_hooks.sh
             echo "::endgroup::"
           done
+
+      - name: Check document and installation contracts
+        run: python3 -m unittest discover -s tests -p 'test_*.py'

@@ -6,7 +6,7 @@ Coding agents fail in predictable ways. They guess at unclear requirements, buil
 
 The playbook treats each failure as a process problem and answers it with a mechanism. That can be a spec, a test written first, an independent review, a committed handoff note, or a hook that blocks the action.
 
-It works with any agent that reads `AGENTS.md`. Claude Code gets two extras: hooks that enforce the mechanical rules, and the full reference as a skill.
+It works with any agent that reads `AGENTS.md`. Claude Code gets two extras: optional hooks for common checks, and the full reference as a skill.
 
 ## How it works
 
@@ -20,7 +20,7 @@ It works with any agent that reads `AGENTS.md`. Claude Code gets two extras: hoo
 | Repeats a corrected mistake | Lessons written down the moment they happen | `tasks/lessons.md` |
 | Obeys text it found, or runs something destructive | Fetched text is data. Destructive commands need a person. | `AGENTS.md`, the `PreToolUse` hook |
 
-Attention is the budget. The core file stays short because every agent loads it on every session. The full reference sits behind a routing table, so an agent opens one section at a time. Hooks run outside the model and cost no context.
+Attention is the budget. The core file stays short because every agent loads it on every session. The full reference sits behind a routing table, so an agent opens one section at a time. Hook commands run outside the model; their task notes and diagnostics still use context.
 
 The reference states the principle directly:
 
@@ -34,7 +34,7 @@ An illustrated explainer lives at [`docs/explainer.html`](docs/explainer.html). 
 |---|---|
 | `AGENTS.md` | The core rules for every agent, with a blank Project section for your repository |
 | `CLAUDE.md` | One import line, `@AGENTS.md`, plus notes for Claude Code |
-| `.claude/settings.json` | The hooks: block destructive commands, format, audit dependencies, restore task state, gate on tests |
+| `.claude/settings.json` | The hooks: guard common destructive commands, format, audit dependencies, restore task state, remind about verification |
 | `.claude/skills/engineering-playbook/` | The full reference, and a routing table from a need to a section |
 
 Everything else here belongs to this repository: this README, `INSTALL.md`, `docs/`, `tests/`, `tasks/`, and `.github/`. The `tasks/` folder is the playbook applied to its own development.
@@ -61,44 +61,21 @@ Show me your plan before you change anything.
 
 The prompt says to clone because an agent that fetches a URL often receives a summary of the page. Read from the clone, the rules arrive whole.
 
-Know what happens before you see a plan. Your agent clones the kit, reads your repository, and runs your test, lint, type check, and build commands. The guide tells it to run nothing else, and never a deploy, a publish, or a migration.
+Your agent reads the project, prepares one complete merge plan, and waits for approval before writing. It preserves your rules and existing edits, selects only hooks that fit your tools, and verifies the result before recording the source commit. Use the same guide for upgrades: it replaces earlier kit hooks while preserving your own.
 
-Then it proposes a merge and waits. It should never overwrite a file, commit, or push without your say. It adapts the hooks to your stack and fills in the Project section with commands it ran.
+For the smallest setup, install the core and reference. Claude Code users can add the import bridge and optional hooks. Other harnesses need no Claude configuration. Tell your agent a commit or tag if you want a pinned version.
 
-To pin what you install, tell your agent which commit to check out in the clone. The install records that commit in `.claude/skills/engineering-playbook/INSTALLED_FROM`.
+## Optional hooks
 
-## Before you turn on the hooks
+Read [`.claude/settings.json`](.claude/settings.json) before enabling it. Hooks run shell commands with your permissions. They need a POSIX shell and `jq`; a core-only install needs neither.
 
-Hooks run shell commands on your machine with your permissions. Read `.claude/settings.json` before you trust it. Each hook acts only on tools your project already has, and none of them downloads anything.
+- **Command guard:** blocks common destructive Bash spellings and rejects invalid input or a missing parser. This is best-effort text matching. It can block harmless quoted text and miss aliases, scripts, computed paths, or other shell syntax. Use harness permissions and OS sandboxing as the security boundary.
+- **Formatting:** uses the project's installed Biome after Edit/Write, checks physical project containment, and skips file symlinks and node_modules. Directory symlinks within the project are allowed. It is not protection against concurrent filesystem changes or a malicious formatter.
+- **Dependency audit:** runs `npm audit` after Edit/Write changes to a manifest or npm lockfile, only when npm and its lockfile are present. It reports after the write. Adapt or omit it for other package managers.
+- **Session state:** adds task notes and five commits to context. Keep the notes short.
+- **Stop reminder:** runs local tests and available TypeScript checks, then requests another turn on failure. The continuation guard allows a blocked handoff; a successful Stop is not proof that tests passed. Keep CI as the final check.
 
-- Every hook needs `jq` and a POSIX shell. Without `jq`, the hook that blocks destructive commands lets everything through.
-- The format hook runs Biome only when your project has it installed, at `node_modules/.bin/biome`, and only on files inside your project. Without Biome it does nothing. Swap in your own formatter if you use another one.
-- The audit hook runs `npm audit` at the project root when `package.json` or its lockfile changes. It needs a `package-lock.json` or an `npm-shrinkwrap.json`, and does nothing without one. Python, pnpm, yarn, and uv projects need their own command. The kit runs no Python audit, because `pip-audit -r` installs the requirements to resolve them.
-- The `Stop` hook runs `npm test` when `package.json` has a test script, then `tsc --noEmit` when your project has a `tsconfig.json` and TypeScript installed. A failure sends the agent back to work before it can finish. Replace the commands with your own. On a slow suite, consider leaving this gate to CI.
-- The `PreToolUse` hook blocks force pushes, hard resets, branch deletion, recursive deletes of root or home, and dropped tables. It matches text, so it also blocks a harmless command that only mentions one of those phrases.
-- Hooks are a Claude Code feature. Other harnesses ignore `.claude/settings.json`, so those rules rest on CI and on the agent.
-
-## Manual install
-
-These commands never overwrite. `cp -n` skips a file that already exists, so read its output. If it skips one, merge that file by hand.
-
-```bash
-KIT="$(mktemp -d)"
-git clone --depth 1 https://github.com/vscarpenter/EngineeringPlaybook.git "$KIT"
-cd /path/to/your/repository
-mkdir -p .claude/skills
-cp -n "$KIT/AGENTS.md" "$KIT/CLAUDE.md" .
-cp -Rn "$KIT/.claude/skills/engineering-playbook" .claude/skills/
-cp -n "$KIT/LICENSE" .claude/skills/engineering-playbook/LICENSE
-git -C "$KIT" rev-parse HEAD > .claude/skills/engineering-playbook/INSTALLED_FROM
-echo "Now edit $KIT/.claude/settings.json for your stack."
-```
-
-The hooks come last, because copying them turns them on:
-
-1. Edit the clone's `.claude/settings.json` for your stack, as the section above describes.
-2. Copy it into place with `cp -n "$KIT/.claude/settings.json" .claude/settings.json`.
-3. Fill in the Project section at the end of `AGENTS.md`: stack, commands, verification tools, patterns, and gotchas. The playbook sends agents there for your project's commands.
+The hooks never download a missing tool. Adapt them to tools already in your project, or omit them. The [installation guide](INSTALL.md) covers setup and upgrades; there is no separate copy recipe to keep in sync.
 
 ## Day to day
 
@@ -110,14 +87,15 @@ The hooks come last, because copying them turns them on:
 
 ## Working on the kit
 
-The hooks are shell one-liners in `.claude/settings.json`, and they have tests. Run them before and after you change a hook:
+Run the hook regressions and document/install contracts before and after a change:
 
 ```bash
 bash tests/test_hooks.sh
+python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Each test runs a hook against stub tools that record how they were called. Nothing real runs, and nothing touches the network. CI runs the same tests on Ubuntu and macOS for every pull request, under `sh`, `bash`, and `dash`.
+The hook tests use stub tools that record how they were called. Nothing real runs, and nothing touches the network. CI runs the hooks under `sh`, `bash`, and `dash` on Ubuntu and macOS, plus the document/install checks with Python 3. These development checks add no runtime dependency for adopters.
 
 ## License
 
-[MIT](LICENSE). Keep the notice with your copy. `INSTALL.md` and the manual steps both place it inside the copied skill folder.
+[MIT](LICENSE). Keep the notice with your copy. `INSTALL.md` places it inside the copied skill folder.

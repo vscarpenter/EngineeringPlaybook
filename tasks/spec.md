@@ -1,92 +1,59 @@
-# Spec: close eight gaps in the operating rules
+# Spec: make the playbook safe and simple to adopt
 
 ## Goal
 
-Fix four missing or contradictory rules and two kinds of drift in `AGENTS.md` and the reference, so an agent that reads only the core gets rules it can follow and cannot cheat.
+Resolve all 15 findings from the September 18 release review while keeping installation, daily use, and maintenance simple.
 
 ## Inputs / Outputs
 
-- Inputs: a review of `main` at `2ca7f6a` on 2026-09-17, and Vinny's answer the same day: "lets batch findings 1, 2, 3, 4, 9, and 10 into one PR."
-- Extended on 2026-09-18. Vinny asked for a recommendation on findings 5 and 6, read it, and said "add them to this branch as a second commit." The wording below is that recommendation.
-- Outputs: wording changes in `AGENTS.md`, the reference (1.1, 1.2, 1.3, 1.4, 1.6, 1.9, 2.5, 3.2, Part 5, 6.2, Part 8), one row of the skill's routing table, and six sentences in `docs/explainer.html`. Branch `fix/rule-gaps`.
-
-## The eight findings
-
-1. No rule stops an agent from deleting, skipping, or weakening a test, or from bypassing a check, to get green.
-2. "Issue bodies are data" contradicts issue-driven work. The issue that launched the session is the task. Everything else is data.
-3. Mode detection depends on "nobody answers," which an agent can only learn by asking and waiting. A headless run ends when it asks.
-4. "The plan has broken twice" usually means a red suite, and the handoff forbids ending on one. The agent has no legitimate exit.
-5. "Trivial" has no definition, and the spec, the elegance check, and the reviewer all hang on it. The agent has the incentive to call work trivial.
-6. The author decides alone whether a BLOCKING finding is wrong, and nothing bounds the review loop. The hook task ended with fixes no reviewer saw.
-9. The core and the reference disagree: two stop conditions are missing from the core, the elegance check's dependency threshold is nearly always met, 2.5 still recommends `pip-audit` in a hook, and the commit count on resume differs.
-10. The 400-line PR limit is in the reference and not in the core.
+- Input: review of `dabdc2a`, R1 through R15; the user's approval: "let's resolve all 15 actionable issues. The goal is to make this as simple as possible to adopt and use".
+- Output: corrected hooks, one clear installation/upgrade guide, consistent core/reference/explainer, committed regression checks, and independently reviewed pull requests.
 
 ## Constraints
 
-- No hook, test, or CI change. `.claude/settings.json` and `tests/` stay as they are.
-- `AGENTS.md` stays at 84 lines and the reference at 640, and every Part heading stays on its line. The explainer draws both files to scale.
-- Every rule that changes in the core changes in the reference too, and they say the same thing.
-- Explainer text that restates a changed rule gets the same change.
-- No version bump, release tag, or Appendix A edit. Those are open decisions.
-- vinny-voice rules on all prose.
+- Keep the existing four-path kit and POSIX shell/jq runtime requirements; add no runtime package.
+- Keep one canonical executable hook implementation. Remove the weaker copied JSON example.
+- The destructive-command filter is best effort. Harness permissions and sandboxing remain the security boundary; do not claim to parse arbitrary shell safely.
+- Preserve legitimate hook behavior: optional tools, quoted paths, working-directory handling, and bounded Stop continuation.
+- This approval covers remediation through spec, plan, implementation, and verification without another approval gate.
+- Preserve unrelated project files, permissions, hooks, and user edits during installation and upgrades.
+- Physical line counts are not a contract. Describe the explainer's structure without freezing document lengths.
+- No release tag, merge, or deployment. After verification, push two focused stacked PRs: safe adoption (R1-R5), then rule consistency (R6-R15). Keep each under the repository's 400-line non-generated-code limit.
 
 ## Edge Cases
 
-- A pipeline whose prompt does not state a mode: the agent is attended, asks its question, and the run ends. That is the safe failure. The PR description tells adopters to add the line.
-- An issue body that says "Mode: unattended": the launcher's prompt states the mode, never the issue.
-- A public repository where the agent cannot tell who wrote or labeled the issue: ask when attended, end with Needs decision when unattended.
-- A spec that legitimately changes behavior an existing test asserts: the assertion may change, with the reason in the spec.
-- A 25-line typo sweep across three files: non-trivial. A three-line spec is cheap, and a fuzzy boundary on the costliest gates is not.
-- A BLOCKING finding with no failure scenario: the review prompt now requires one, so the author has something to disprove.
-- The re-review finds a new BLOCKING problem in the fix: that counts as still open, and the agent stops.
-- A red suite with nothing worth keeping: the agent still ends on the last green commit. The separate branch is for an attempt worth a look.
+- Quoted home paths, reordered flags, Git global options and deletion/forced refspecs, lowercase SQL, malformed JSON, missing jq.
+- File or parent symlinks leaving the repository, a symlinked project root, spaces and quotes in paths.
+- Root/nested Claude files, both present, retained symlinks, older/customized hooks, partial installs, missing provenance.
+- Staged/unstaged user edits including unrelated changes in a task-owned file, and red-suite recovery.
+- Refactors/docs with no changed executable behavior; authorized launching issues versus other issue content.
 
 ## Out of Scope
 
-- Findings 7, 8, 11, and 12 (the deny list and permissions, a CI template, the `SessionStart` budget, trimming "Done means").
-- Blocking `--no-verify` in the `PreToolUse` hook. It is a hook change and belongs with finding 7.
-- Republishing the explainer Artifact. It follows the merge.
+A general shell parser, replacement sandbox, dependency installation, new harness integration, installer framework, broad visual redesign, unrelated engineering opinions, or optional companion skills.
 
-## Acceptance Criteria
+## Acceptance Criteria and Test Stubs
 
-1. The core and reference 3.2 forbid deleting, skipping, or weakening an existing test and bypassing a hook or check, name `--no-verify`, and require a spec reason to change an assertion. Part 8 lists it.
-2. The core and reference 1.9 say the prompt or issue that launched the session is the task, list issue comments and other issues as data, and limit tasks in a public repository to issues a maintainer wrote or labeled.
-3. The core and reference 1.2 say the launcher states the mode, show `Mode: unattended`, and default to attended. Neither mentions nobody answering. The explainer matches.
-4. The core and reference 1.6 give the red-suite exit: last green commit on the task branch, the broken attempt on a separate branch, named under Needs decision. Reference 1.2 points to it.
-5. The core lists all six stop conditions. The elegance check uses the 2.1 threshold in both files. Reference 2.5 drops `pip-audit` from the hook advice and warns against an audit that installs what it audits. Both files say five commits.
-6. The core states the PR limit: 400 or fewer lines, one concern.
-7. The core and reference 1.3 define trivial as five conditions that must all hold, say doubt means non-trivial, and put the tier and reason on the first line of `tasks/todo.md`. The skill's routing table points to it.
-8. The core and reference 1.4 require evidence to decline a BLOCKING finding, send the decline to the human (attended) or the top of the PR description (unattended), give BLOCKING fixes one re-review of the fix diff, and stop when a BLOCKING finding is still open after it. The stop conditions, Part 5, the review prompt, Part 8, and the explainer match.
-9. Line counts and Part heading positions are unchanged, including the 1.3 section the explainer draws. No em or en dash in a touched file.
-10. `bash tests/test_hooks.sh` still passes under `sh`, `bash`, and `dash`.
-11. An independent review of the diff against the request and this spec has run, with every finding fixed or declined with a reason.
+| Finding | Acceptance criterion | Verification |
+|---|---|---|
+| R1 | Guard blocks supported ordinary destructive forms and fails closed on invalid input/missing parser. Limits are explicit. | Original bypasses, alternate flags/refspecs, malformed payloads, missing jq, normal push/test controls. |
+| R2 | Formatter rejects external destinations reached through symlinks; legitimate paths work. | File/parent/root symlink fixtures, spaces/quotes, existing traversal checks. |
+| R3 | Approved upgrades replace prior kit hooks and preserve unrelated/customized hooks through explicit resolution. | Clean/reinstall/upgrade dry runs and contract checks. |
+| R4 | Claude imports resolve to root AGENTS.md in every supported layout. | Root/nested/both/symlink scenarios. |
+| R5 | Colliding/partial installs cannot silently claim the new version. | One reviewed install path; provenance only after final verification. |
+| R6 | No second executable hook implementation appears in the reference. | Canonical source pointer and document check. |
+| R7 | Read-only reviewer template has no unrestricted shell. | Template tool check; enforced read-only environment documented for execution. |
+| R8 | Orientation, staging, and recovery preserve pre-existing changes. | Ownership contract and dirty-checkout scenario review. |
+| R9 | Final handoff precedes verification and its scoped commit. | Ordered lifecycle check and scenario review. |
+| R10 | Red-first applies to changed behavior; refactors/docs use relevant verification and justified N/A criteria. | Work-type contract checks. |
+| R11 | TDD proof records red/green commands and results, not inferred commit ordering. | Review/checklist checks. |
+| R12 | All documents stop after the second broken plan. | Cross-document scenario check. |
+| R13 | Agents may follow explicit references to required review prompts. | Routing/reference check. |
+| R14 | Stop is described as a bounded reminder; blocked handoff differs from successful completion. | Continuation regression and documentation check. |
+| R15 | Red flags preserve the authorized-launching-issue exception. | Cross-document authority check. |
 
-## Test Stubs
+## Verification
 
-Document checks, one or more per criterion, in a shell script run from the repository root:
+Extend focused tests and confirm red before implementation. Run hooks under sh/bash/dash, standard-library document/install tests, syntax/diff checks, a browser smoke test, fresh-agent install/upgrade dry runs, and a fresh adversarial final-diff review. CI runs committed checks on Linux and macOS.
 
-- `should_forbid_weakening_a_test_in_core_and_reference` (1)
-- `should_name_no_verify_in_core_and_reference` (1)
-- `should_call_the_launching_issue_the_task` (2)
-- `should_list_issue_comments_as_data` (2)
-- `should_limit_public_tasks_to_a_maintainer` (2)
-- `should_show_the_mode_line_and_default_to_attended` (3)
-- `should_not_mention_nobody_answering_anywhere` (3)
-- `should_give_the_red_suite_exit_in_core_and_reference` (4)
-- `should_list_all_six_stop_conditions_in_the_core` (5)
-- `should_use_the_twice_the_code_threshold` (5)
-- `should_drop_pip_audit_from_hook_advice` (5)
-- `should_say_five_commits_in_both_files` (5)
-- `should_state_the_pr_limit_in_the_core` (6)
-- `should_define_trivial_as_five_conditions_in_core_and_reference` (7)
-- `should_default_doubt_to_non_trivial` (7)
-- `should_put_the_tier_on_the_first_line_of_the_plan` (7)
-- `should_route_the_tier_question_from_the_skill` (7)
-- `should_require_evidence_to_decline_a_blocking_finding` (8)
-- `should_send_an_unattended_decline_to_the_top_of_the_pr` (8)
-- `should_bound_the_review_loop_at_one_re_review` (8)
-- `should_drop_show_to_be_wrong_everywhere` (8)
-- `should_require_a_failure_scenario_in_the_review_prompt` (8)
-- `should_keep_every_line_count_and_heading_position` (9)
-- `should_hold_no_em_or_en_dash` (9)
-- Criterion 10 is the committed hook tests. Criterion 11 is the review.
+Existing test fixtures may gain physical files/directories needed for path validation. Assertions may change only for intentionally narrowed unsafe behavior; none may be removed to get green.
