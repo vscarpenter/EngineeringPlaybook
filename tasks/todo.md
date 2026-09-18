@@ -39,7 +39,7 @@ The previous task (hook defects) merged as PR 2. Its spec and review live in git
 ### Behavior changes an adopter will notice
 
 - A pipeline or routine whose prompt lacks `Mode: unattended` now runs attended. Its agent asks a question and the run ends. Add the line to AgentMachinist's prompts and to the nightly routine before this merges.
-- The core grew from 1,147 to 1,290 words. Finding 12 (trim "Done means" to a pointer) would pay that back.
+- The core grew from 1,147 to 1,268 words. Finding 12 (trim "Done means" to a pointer) would pay that back.
 
 ### Not verified
 
