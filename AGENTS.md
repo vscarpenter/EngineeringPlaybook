@@ -4,7 +4,8 @@ Operating rules for any coding agent working in this repository. This is the alw
 
 ## Before you write
 
-- Read this file, `README`, and `CONTRIBUTING`. Explore the layout. Find existing patterns and helpers before creating new ones.
+- Read this file, `README`, and `CONTRIBUTING` when present. Explore the layout. Find existing patterns and helpers before creating new ones.
+- Record `git status --short` and inspect staged and unstaged diffs before editing. Preserve pre-existing changes, including changes in files this task will touch.
 - The existing codebase is the style guide. Match it exactly, even where it differs from the rules below.
 - Resuming a session: read `tasks/lessons.md`, `tasks/todo.md`, then the last five commits. Do not ask for context these files already hold.
 
@@ -19,7 +20,9 @@ Decide at the start. The launcher states the mode in its prompt with a line such
 
 ## Spec first (non-trivial work)
 
-A change is trivial only when all five hold: it touches one file and 20 or fewer changed lines; it changes no public interface or behavior; it adds no dependency; it touches no schema, infrastructure, auth, secrets, or CI; and an existing test covers the code. When in doubt, it is non-trivial. State the tier and the reason on the first line of `tasks/todo.md`. Non-trivial work gets `tasks/spec.md` before implementation: Goal, Inputs/Outputs, Constraints, Edge Cases, Out of Scope, Acceptance Criteria, Test Stubs (one or more per criterion). Drift means updating the spec first. Playbook 1.3.
+A change is trivial only when all five hold: it touches one file and 20 or fewer changed lines; it changes no public interface or behavior; it adds no dependency; it touches no schema, infrastructure, auth, secrets, or CI; and an existing test covers the code. When in doubt, it is non-trivial. State the tier and the reason on the first line of `tasks/todo.md`.
+
+Non-trivial work gets `tasks/spec.md` before implementation: Goal, Inputs/Outputs, Constraints, Edge Cases, Out of Scope, Acceptance Criteria, Test Stubs. Cover each criterion with test stubs for changed behavior or planned verification steps for refactors and documentation. Drift means updating the spec first. Playbook 1.3.
 
 ## Verify first
 
@@ -33,8 +36,9 @@ A change is trivial only when all five hold: it touches one file and 20 or fewer
 ## Build in increments
 
 - Minimal working version first, then extend. Do not write large amounts of code before running any of it.
-- Red, green, refactor for every behavior: write the test, confirm it fails for the right reason, write the minimal implementation, refactor, repeat. No second function before the first has a passing test.
-- Run affected tests after each change. Run the full suite before every commit and at session end.
+- Red, green, refactor for changed executable behavior: write the test, confirm the intended failure, implement, refactor. Record the red command and failure, then the green command and result in `tasks/todo.md`.
+- Refactors verify unchanged behavior before and after. Documentation changes verify relevant links, examples, and rule consistency. Choose checks that can detect the actual defect. Playbook 3.1.
+- Run affected checks after each change and the full applicable suite before every commit.
 - Solve the problem generally. Never hard-code to the test cases. Never delete, skip, or weaken an existing test, and never bypass a hook or check (`--no-verify`, skip markers, lint suppressions) to get green. Changing an existing assertion needs a reason in the spec.
 
 ## Code rules
@@ -56,10 +60,12 @@ About 80% line coverage as a floor and 100% of acceptance criteria. Behavior-bas
 
 - `tasks/` is committed. `spec.md` is the contract, `todo.md` the plan and progress (checkable items, Assumptions, Review section), `lessons.md` the permanent list of corrections and gotchas for this codebase.
 - Plan in `tasks/todo.md` before touching code. Mark items done as you go, never in a batch at the end.
+- Stage only task-owned changes. Preserve unrelated staged and unstaged edits, including hunks in the same file; ask before including unrelated work. This ownership rule also applies to recovery branches. Playbook 1.6.
 - Commit after each logical unit: `<type>(<scope>): <description>`, imperative, lowercase, 72 characters or fewer. Branches `<type>/<short-description>`. Flow: commit, push, open PR. A PR holds 400 or fewer lines of non-generated code and one concern.
 - At roughly 80% of context with uncommitted work, stop adding and commit. Prefer a fresh session over compaction; state lives in `tasks/` and git.
 - After any correction, add the lesson to `tasks/lessons.md` immediately. A repeated mistake is a process failure.
-- Before ending: commit, run the full suite, and write **Resuming From Here** in `tasks/todo.md` (done, next, blockers, assumptions, any Needs decision). If you cannot get green, do not force it. Leave the task branch on its last green commit, commit the broken attempt to a separate branch, and name that branch under Needs decision.
+- Before ending: write **Resuming From Here** in `tasks/todo.md` (done, next, blockers, assumptions, any Needs decision), run verification, then commit task-owned changes including the handoff. Check status and report the commit plus any remaining user changes.
+- If verification cannot pass, use the blocked-handoff recovery in Playbook 1.6. Preserve unrelated work; report the failure and recovery location instead of claiming completion.
 
 ## Security
 
@@ -71,7 +77,7 @@ About 80% line coverage as a floor and 100% of acceptance criteria. Behavior-bas
 
 ## Done means
 
-Spec met; verification defined first and passing; tests before code with red confirmed; every criterion tested; refactor done; full suite, lint, format, and types clean with no suppressions; independent review done, with findings fixed or declined; PR description complete with assumptions; new config documented; ADR written for hard-to-reverse decisions (`docs/adr/`); dependencies locked and audited; feature flags owned with removal dates; accessibility baseline met; `tasks/todo.md` has Review and Resuming From Here. Playbook Part 5.
+Record evidence or a justified **N/A** for each criterion in Playbook Part 5. Spec met; verification passing; red/green evidence for changed behavior; each acceptance criterion verified; relevant suite, lint, format, and types clean; independent review resolved; documentation and applicable dependency, architecture, accessibility, and feature-flag checks complete. Commit the Review and Resuming From Here notes with the task.
 
 ## Project
 

@@ -4,11 +4,11 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 
 ## Tooling
 
-- A bare `npx <name>` runs whatever package owns that name on npm. `npx biome` fetched an unrelated `biome@0.3.3`, and the hook's `|| true` hid it. Use the scoped name, `@biomejs/biome`, and check the npx cache after changing a hook.
+- A bare `npx <name>` runs whatever package owns that name on npm. `npx biome` fetched an unrelated `biome@0.3.3`, and the hook's `|| true` hid it. Use the project-installed executable in hooks; never download a missing tool.
 - Claude Code normally picks up hook edits through its file watcher, with no restart. An earlier version of this lesson said hooks load once at session start. That was out of date. Check the current docs before stating how the harness behaves.
 - Exit code 2 blocks only where the event can block. On `PostToolUse` the tool already ran, so exit 2 shows stderr to the model and blocks nothing.
-- In shell, `a && b || true` swallows a failure of `b`. The shipped `Stop` hook has that shape around `tsc`, so a type error never blocks. Use `! a || b`.
-- The `PreToolUse` hook matches the raw command string. A Bash command that only mentions a blocked phrase, even inside quotes, gets blocked.
+- In shell, `a && b || true` swallows a failure of `b`. An earlier Stop hook swallowed type errors this way; the current regression test requires exit 2. Handle failure explicitly.
+- The `PreToolUse` hook matches normalized command text. A Bash command that only mentions a blocked phrase, even inside quotes, gets blocked.
 - macOS `/usr/bin/tidy` dates from 2006 and rejects HTML5 elements. Validate HTML with a parser check, not with `tidy`.
 - Pipe command output. Do not write temp files to `/tmp` and delete them. Use the session scratchpad when a file is needed.
 
@@ -30,14 +30,14 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 
 ## Editing the kit
 
-- `docs/explainer.html` hard-codes line counts from `AGENTS.md` and the reference: two hero facts, two sentences, and every segment of the to-scale figure. Any edit to those files makes the page wrong. Recompute from the headings and update the page in the same change.
+- Keep the explainer's semantic structure and checklist aligned with the rules. Do not freeze source line counts to preserve a drawing.
 - The page's Definition of Done list quotes Part 5 word for word. A new checkbox in Part 5 needs the same item on the page.
-- `AGENTS.md` cites its own length on the page (84 lines). Edit its lines in place to hold the count, or update the page.
+- A read-only tool list must exclude writable shells, or require an enforced read-only filesystem. A prose instruction alone does not remove write capability.
 - Give a reviewer the owner's words and the spec, never your own summary. A reviewer handed the author's framing reviews the framing.
 - A pointer such as "(1.2)" is a claim about what that section says. Before citing a closed list, check the list carries the item. A heading that exists is not enough.
 - `AGENTS.md` tells agents to open the reference only when a line points there. A rule in the core file with no "Playbook N.N" pointer hides its own detail.
 - When a spec excludes an edit, check the exclusion against the approved design, not against the edit count quoted at approval. A count is an estimate. The design is the contract.
-- Presence tests pass under contradiction. For prose rules, add a structural test for each cross-section claim, and let the independent review hunt for the rest.
+- Presence tests pass under contradiction. Check cross-section claims and instruction order, then dry-run guides in fixtures and use independent review for ambiguity.
 - Appending a clause to a long existing sentence makes it longer. Add a new short sentence.
 
 ## Writing instructions for other people's agents
