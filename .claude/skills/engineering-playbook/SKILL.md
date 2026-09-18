@@ -10,7 +10,7 @@ The always-on rules are already in context from `AGENTS.md`. Do not re-read them
 | Need | Section |
 |---|---|
 | Deciding attended vs unattended, stop conditions | 1.2 Operating modes |
-| Writing or updating a spec | 1.3 Spec-driven development |
+| Deciding whether work is trivial, writing or updating a spec | 1.3 Spec-driven development |
 | Choosing a verification method, elegance check, independent review | 1.4 Verification first |
 | `tasks/` file lifecycle, handoff block, context budget | 1.6 Context, commits, and handoff |
 | Untrusted content, secrets, destructive operations | 1.9 Agent security |

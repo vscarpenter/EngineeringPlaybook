@@ -1,74 +1,72 @@
-# Todo: hooks that act only on what is present
+# Todo: close eight gaps in the operating rules
 
-Tier: Non-trivial. It changes the hooks every adopter installs. Vinny approved the design in chat on 2026-09-17: fix the four defects and the format hook, reword 1.9, commit the tests. Spec: `tasks/spec.md`. Branch: `fix/hook-defects`.
+Tier: Non-trivial. It changes rules every adopter's agents load on every session. Vinny approved the scope in chat on 2026-09-17: batch review findings 1, 2, 3, 4, 9, and 10 into one PR. On 2026-09-18 he read a recommendation on findings 5 and 6 and asked for both on this branch. Spec: `tasks/spec.md`. Branch: `fix/rule-gaps`.
 
-The previous task (public release files) merged as PR 1. Its spec and review live in git history at commit `fcd08f4` and before.
+The previous task (hook defects) merged as PR 2. Its spec and review live in git history at commit `70719be` and before.
 
 ## Verification (defined first)
 
-- `bash tests/test_hooks.sh`. Each hook command runs in a throwaway folder against stub `npm`, `npx`, `tsc`, `biome`, and `pip-audit` that record how they were called. Red against today's hooks, then green.
-- The session's document checks for the reference, `README.md`, `INSTALL.md`, and the explainer.
-- An independent review of the diff against Vinny's request and the spec, by a read-only agent in a fresh context (1.4).
+- Document checks: a shell script with 86 assertions (55 for the first batch, 31 for findings 5 and 6). It checks required and removed phrases in the core, the reference, and the explainer, every line count and Part heading position, and em and en dashes. Red first for each batch (33 of 55, then 23 of 83), then green.
+- `bash tests/test_hooks.sh` under `sh`, `bash`, and `dash`, as a regression guard. No hook changed.
+- An independent review of the diff against Vinny's request and the spec (1.4). Not run yet. See Not verified.
 
 ## Plan
 
-- [x] Write `tests/test_hooks.sh`, confirm red for the right reasons (14 of 26 failing)
-- [x] Fix the `Stop`, audit, and format hooks. Green.
-- [x] Reference: 7.5 and 1.9, edited in place. Still 640 lines.
-- [x] `README.md`, `INSTALL.md`, and the explainer
-- [x] Independent review: 2 blocking, 8 important, 8 nits
-- [x] Back to Vinny on the blocking finding. He chose to drop the Python audit and to edit `CLAUDE.md`.
-- [x] Spec corrected, tests red (12 of 33), fixes, green under sh, dash, bash, and zsh
-- [x] Second, narrow review of the three hook commands: no blocker, 3 important, 2 nits
-- [x] Spec updated, tests red (4 of 41), fixes, green. Nine mutations, nine caught.
-- [x] Handoff
-- [x] CI: `.github/workflows/hook-tests.yml` runs the hook tests on Ubuntu and macOS, under `sh`, `bash`, and `dash`. Vinny asked for it on 2026-09-17.
+- [x] Baseline: hook tests green on `main` (41 of 41, three shells)
+- [x] Write the document checks, confirm red for the right reasons (33 of 55 failing)
+- [x] Spec written and committed
+- [x] Core and reference edits, in place. `AGENTS.md` still 84 lines, the reference still 640, every Part heading on its line.
+- [x] Explainer: two sentences that restated changed rules
+- [x] Checks green (55 of 55). Hook tests green (41 of 41, three shells).
+- [x] Self-review: re-read every changed line
+- [x] Findings 5 and 6: spec extended first, checks red (23 of 83), edits in place, green (86 of 86). Hook tests green.
+- [x] Self-review of the second batch
+- [ ] Independent review in a fresh context
+- [ ] Open the PR
 
 ## Assumptions
 
-- Claude Code runs a hook command through a POSIX shell. The tests use `sh -c`, and pass under dash, bash, and zsh too.
-- `npm audit` keeps running at the project root, as it did before.
-- Claude Code passes `file_path` as an absolute path in the same form as `CLAUDE_PROJECT_DIR`. A symlinked alias of the project path makes the two `PostToolUse` hooks do nothing, which is the safe direction.
+- The elegance check's "two or more lines per dependency" was a garbled copy of principle 2.1. Both files now use the 2.1 threshold: the standard library would take more than twice the code.
+- The reference moved to "five commits" to match the core and the `SessionStart` hook, which prints five.
+- The mode line lives in the launcher's prompt only. An environment variable would be a second interface to document and test.
+- Trivial means one file and 20 or fewer changed lines. The chat recommendation said "one file or about 20 changed lines," which reads two ways. "And" matches its own example: a typo sweep across three files gets a spec.
+- A review round is one review plus its fixes. BLOCKING fixes get one re-review, so the loop ends after the second review at the latest. A new BLOCKING problem found in the fix counts as still open.
+- The new lines fit on existing lines by merging two pairs of reference bullets: the two test-naming bullets in 3.2, two scope red flags in Part 8, and items 1 and 2 of 1.3. No rule was dropped.
 
 ## Review
 
-### What the reviews found
+### Self-review findings, fixed
 
-- My first fix for the Python audit was unsafe. `pip-audit -r <file>` is, in its own README's words, "functionally equivalent to `pip install -r`". The hook would have downloaded and built packages on every manifest edit. Vinny chose to drop the Python arm.
-- My first tests logged `$*`, which flattens arguments. The reviewer removed the quotes around a path and all 26 tests still passed. The stubs now log each argument in its own brackets.
-- My test-script guard used `jq -e`, which exits 5 on invalid JSON, so a `package.json` with a trailing comma ended the session ungated. That was a regression against `main`. Fixed, with a test.
-- While editing `settings.json`, the old format hook re-indented all 49 lines with tabs. That is the defect the format fix removes, caught in this repository.
+- The first draft of the red-suite exit ran past 25 words and hung on a colon. Split into two sentences.
+- The red-suite exit allows one commit with a failing suite, which 1.5 and Part 8 otherwise forbid. Reference 1.6 now says that commit is the only exception.
 
-### Findings fixed
+- Second batch: the core's stop-condition sentence read badly, so I reworded it. The core gave attended sessions no end to the review loop, so it now says to ask.
+- Second batch: the explainer never said what trivial means. Its path section now points to the five conditions in 1.3.
 
-Review 1: B1 and B2 (Python audit dropped), I1 (argument logging), I2 (exact file names, `node_modules`), I3 (README on 1.9), I4 (`npm` and test-script guards), I5 (format from the project root, inside the project only), I6 (exit code 2 by event), I7 (`CLAUDE.md` bullet, with Vinny's approval), the wording part of I8, N1 (`SETTINGS` override), N2 (exact-line matching), N3 (`PATH` isolation, `mktemp` and `jq` guards, `HOOK_SH`), N4 (unset project variable), N6 (`npm-shrinkwrap.json`), N7 (the 7.5 example).
+### Behavior changes an adopter will notice
 
-Review 2: a `..` step escaping the project, invalid JSON passing the `Stop` hook, the `npm init` placeholder script, a trailing slash on the project variable, the `node_modules` check on the whole path, three mutations that survived, a sibling-prefix test, `$RANDOM` collisions, and a non-POSIX `grep` pattern.
-
-### Declined, with reasons
-
-- Review 1, I8, sign-off for dropping the pnpm and uv triggers: the design Vinny approved said those triggers go away.
-- Review 1, I8, criteria 9 and 10 rest on session checks: committing the document checks is Vinny's open decision. The hook behaviour is covered by committed tests.
-- Review 1, N1, tests and fix share a commit: Part 8 of the reference calls a failing test committed without its implementation a red flag. `SETTINGS=<file>` now reproduces red, and `main` fails 30 of 41.
-- Review 1, N5, show `npm test` output on failure: the agent can rerun the suite, and the one-liner stays readable. Yarn PnP, `tsc -b`, and worktrees are beyond this change. The README says to replace the commands with your own.
-- Review 1, N6, the audit never fires for `npm install` run through Bash: the `Edit|Write` matcher predates this change. Raised below.
-- Review 1, N8, one-liners are hard to review, and no CI runs the tests: both are larger changes. Raised below.
-- Review 2, a symlinked alias of the project path: the hooks do nothing in that case, which is safe. Resolving paths on every write costs more than it buys.
-- Review 2, document workspace roots: the README already tells people to replace the commands.
+- A pipeline or routine whose prompt lacks `Mode: unattended` now runs attended. Its agent asks a question and the run ends. Add the line to AgentMachinist's prompts and to the nightly routine before this merges.
+- Work that an agent used to call trivial now needs a spec unless it meets all five conditions. Expect more small specs.
+- An unattended PR can now open with a declined BLOCKING finding and its evidence above the summary. Read that first.
+- The core grew from 1,147 to 1,400 words, about 22%. Finding 12 (trim "Done means" to a pointer) pays back roughly 90. The rest needs a decision about what leaves the core.
 
 ### Not verified
 
-- The hooks under a real Claude Code session in a JavaScript project. The tests drive each command with a hand-built payload.
-- Real `npm audit`, `tsc`, and `biome`. The tests use stubs by design.
-- `INSTALL.md` was not dry-run again. Its flow did not change. Three rows of its hooks table did.
-- No review ran after the second round of fixes. Nine mutations stand in for one.
+- No independent review has run. The session that wrote this had no way to start a fresh-context reviewer. Criterion 9 is open, and the PR should not merge without it.
+- The document checks are not committed. Committing them is still Vinny's open decision, and this change adds a second script to that decision.
+- The review this PR needs is the first one to run under the new 1.4. Nobody has yet declined a BLOCKING finding with evidence, so that wording is untested.
+- The explainer was checked by text only. Nobody opened it in a browser after the edit.
+- No agent has run under the new rules. In particular, nobody has watched an unattended agent take the red-suite exit.
 
 ## Resuming From Here
 
-- Done: all work is committed on `fix/hook-defects` and pushed, with a PR open. The explainer Artifact matches the repository: https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh
-- Run `bash tests/test_hooks.sh` before and after any hook change. The document checks still live in the session scratchpad and do not survive the session.
+- Done: all edits are committed on `fix/rule-gaps`. Nothing is pushed. The work arrives as a patch series, because the session had no GitHub credentials.
+- Next: apply the series, run the independent review (6.2 prompt, with the request, the spec, and the diff), fix or decline findings, then open the PR.
+- After merge: republish the explainer Artifact (https://claude.ai/artifact/2457aNRNQn52x6CQ4zvFyh). Two of its sentences change.
+- Blockers: none.
 - Needs decision, all Vinny's:
-  1. Move the hooks out of one-line JSON strings into script files. Each is now about 500 characters. Script files would be readable and lintable, but the kit would grow a fifth path.
-  2. The audit hook fires on `Edit|Write` only, so `npm install <package>` through Bash is never audited.
-  3. A Python audit that does not install what it audits, for example a pinned-only static mode, tested against a real `pip-audit`.
-  4. Still open from earlier tasks: a version bump, a definition of "trivial", declining a BLOCKING finding alone, 4.2, a release tag, publishing the explainer, and committing the document checks.
+  1. The core is 1,400 words. Decide what leaves it: finding 12, and possibly the Code rules and Testing sections, which the reference already holds.
+  2. Findings 7, 8, 11, and 12 from the same review: the deny list and a `permissions` block, a harness-neutral CI template, the `SessionStart` budget, and trimming "Done means."
+  3. Block `--no-verify` in the `PreToolUse` hook. The rule now exists in prose only.
+  4. Carried from the hook task: move the hooks into script files, audit `npm install` run through Bash, and a Python audit that does not install what it audits.
+  5. Carried from earlier tasks: a version bump, 4.2, a release tag, publishing the explainer, and committing the document checks.
