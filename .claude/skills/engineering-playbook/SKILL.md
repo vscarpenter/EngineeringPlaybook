@@ -24,6 +24,6 @@ The always-on rules are already in context from `AGENTS.md`. Do not re-read them
 
 ## Gotchas
 
-- Parts 6 and 7 are written for the human running the harness. Read them only when asked to build a skill, hook, or prompt.
+- Parts 6 and 7 are for the human running the harness. Agents may read an explicitly referenced prompt or section (such as the review prompt in 6.2), or use them when asked to build a skill, hook, or prompt.
 - The Project section of `AGENTS.md`, not this playbook, lists the verification tools available in this repository.
 - When the playbook and the existing codebase disagree on style, the codebase wins (1.1).
