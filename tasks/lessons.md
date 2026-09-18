@@ -4,11 +4,11 @@ Corrections and gotchas for this repository. Prune when it grows past a screen.
 
 ## Tooling
 
-- A bare `npx <name>` runs whatever package owns that name on npm. `npx biome` fetched an unrelated `biome@0.3.3`, and the hook's `|| true` hid it. Use the scoped name, `@biomejs/biome`, and check the npx cache after changing a hook.
+- A bare `npx <name>` runs whatever package owns that name on npm. `npx biome` fetched an unrelated `biome@0.3.3`, and the hook's `|| true` hid it. Use the project-installed executable in hooks; never download a missing tool.
 - Claude Code normally picks up hook edits through its file watcher, with no restart. An earlier version of this lesson said hooks load once at session start. That was out of date. Check the current docs before stating how the harness behaves.
 - Exit code 2 blocks only where the event can block. On `PostToolUse` the tool already ran, so exit 2 shows stderr to the model and blocks nothing.
 - In shell, `a && b || true` swallows a failure of `b`. An earlier Stop hook swallowed type errors this way; the current regression test requires exit 2. Handle failure explicitly.
-- The `PreToolUse` hook matches the raw command string. A Bash command that only mentions a blocked phrase, even inside quotes, gets blocked.
+- The `PreToolUse` hook matches normalized command text. A Bash command that only mentions a blocked phrase, even inside quotes, gets blocked.
 - macOS `/usr/bin/tidy` dates from 2006 and rejects HTML5 elements. Validate HTML with a parser check, not with `tidy`.
 - Pipe command output. Do not write temp files to `/tmp` and delete them. Use the session scratchpad when a file is needed.
 
