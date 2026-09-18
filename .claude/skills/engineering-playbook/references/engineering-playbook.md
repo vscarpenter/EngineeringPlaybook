@@ -64,15 +64,15 @@ Decide the mode at the start of the session. The launcher states it in its promp
   - The work touches authentication, secrets, payments, or permissions beyond what the ticket describes.
   - New credentials or third-party accounts are required.
   - The plan has broken twice and the fix is not obvious. The handoff (1.6) covers ending with a red suite.
-  - An independent review raised a BLOCKING finding you can neither fix nor show to be wrong (1.4).
+  - An independent review raised a BLOCKING finding you can neither fix nor disprove with evidence, or one is still open after the re-review (1.4).
   - The task conflicts with these rules.
 
 **Never**, in either mode: silently interpret an ambiguous requirement and build an entire solution on an assumption that could be wrong.
 
 ### 1.3 Spec-driven development (required for non-trivial work)
 
-1. Write the spec first. Create `tasks/spec.md` before any implementation.
-2. Define the contract: inputs, outputs, constraints, edge cases, and what success looks like.
+1. Decide the tier. A change is trivial only when all five hold: it touches one file and 20 or fewer changed lines; it changes no public interface or behavior; it adds no dependency; it touches no schema, infrastructure, auth, secrets, or CI; and an existing test covers the code. When in doubt, it is non-trivial. State the tier and the reason on the first line of `tasks/todo.md`.
+2. Write the spec first. Create `tasks/spec.md` before any implementation. Define the contract: inputs, outputs, constraints, edge cases, and what success looks like.
 3. State anti-goals explicitly. What this does **not** do. This is the main defense against scope creep.
 4. Attended: get approval before coding. Unattended: commit the spec and proceed (1.2).
 5. Treat drift as a failure. Update the spec first, then re-confirm (attended) or record the change under Assumptions (unattended).
@@ -124,11 +124,11 @@ Decide the mode at the start of the session. The launcher states it in its promp
 
 1. Give the reviewer the original request or ticket, `tasks/spec.md`, the final diff, and the repository context it needs. You wrote the spec, so the spec alone cannot catch a misread request. Do not give it your summary of the work.
 2. Run the review prompt (6.2). Ask for every finding, tagged.
-3. Evaluate each finding against the code. A reviewer can be wrong. Fix the valid ones and rerun the affected tests.
-4. Record each declined finding and the reason in the Review section of `tasks/todo.md`, and in the PR description when there is one.
-5. Unattended: a BLOCKING finding you can neither fix nor show to be wrong is a stop condition (1.2).
+3. Evaluate each finding against the code. A reviewer can be wrong. Fix the valid ones and rerun the affected tests. Fixes to BLOCKING findings get one re-review, scoped to the fix diff.
+4. Record each declined finding and the reason in the Review section of `tasks/todo.md`, and in the PR description when there is one. Declining a BLOCKING finding takes evidence: a test or a reproduction that shows the failure scenario does not occur. Attended, the human confirms the decline. Unattended, the finding and its evidence go at the top of the PR description.
+5. A BLOCKING finding you can neither fix nor disprove with evidence, or one still open after the re-review, ends the loop. A new BLOCKING problem in the fix counts as still open. Attended: ask. Unattended: it is a stop condition (1.2).
 
-A trivial change with no PR skips the reviewer. Self-review still applies.
+A trivial change (1.3) with no PR skips the reviewer. Self-review still applies.
 
 **Rule.** Never present code you have not re-read. If you cannot prove the work is correct, the task is not done.
 
@@ -352,7 +352,7 @@ All of these must be true. "It works on my machine" is not on the list.
 - [ ] Refactor step completed after green: no dead code, no over-fit logic.
 - [ ] All new and existing tests pass. Full suite ran before the final commit.
 - [ ] Linting, formatting, and type checking pass with no suppressions.
-- [ ] Non-trivial changes and PRs: independent review ran in a fresh context. Every finding is fixed or declined with a reason.
+- [ ] Non-trivial changes and PRs: independent review ran in a fresh context. Every finding is fixed or declined with a reason. A declined BLOCKING finding has evidence.
 
 **Documentation and process**
 
@@ -414,7 +414,7 @@ Do not filter or self-censor on perceived severity.
 Flag where the spec departs from the request.
 Tie each finding to a line, a spec criterion, or a missing test.
 Give the change you would make, and a concrete failure scenario
-where one exists.
+where one exists. A BLOCKING finding must name a concrete failure.
 Cover: correctness, spec match, regressions, edge cases, security,
 maintainability, missing error handling, test gaps, readability,
 logic implemented before tests, hard-coded values that should be
@@ -570,13 +570,13 @@ Hooks enforce mechanically what prose enforces by hope. Facts that matter:
 **Process**
 
 - Writing code before reading existing patterns.
-- Non-trivial work without a spec, or a spec written after the code.
+- Non-trivial work without a spec, a spec written after the code, or work called trivial to skip one.
 - No verification method defined before implementation.
 - Trial-and-error fixes without root cause analysis.
 - Pushing through a broken plan instead of re-planning or stopping.
 - Widening scope to get unblocked, or modifying files outside the task's scope.
 - Ending a session with failing tests, uncommitted changes, or no Resuming From Here block.
-- Unattended session proceeding past a stop condition.
+- Unattended session proceeding past a stop condition, or a BLOCKING finding declined without evidence.
 
 **Testing**
 

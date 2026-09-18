@@ -899,7 +899,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
       <h2>How a task moves</h2>
       <p class="refs">Playbook Part 1, Part 3, Part 4</p>
       <div class="prose">
-        <p>Non-trivial work follows one path. Most steps leave a file in the repository, so a reviewer or the next session can check the work without asking.</p>
+        <p>Non-trivial work follows one path. A change counts as trivial only when it meets all five conditions in 1.3. Most steps leave a file in the repository, so a reviewer or the next session can check the work without asking.</p>
       </div>
 
       <ol class="path" role="list">
@@ -959,7 +959,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
             <h3>Review</h3>
             <p>The agent re-reads every changed file and runs the elegance check. A fresh context or a read-only reviewer then reads the diff against the request and the spec. The agent checks each finding, fixes the valid ones, and records the rest.</p>
           </div>
-          <div class="step-meta"><span class="label">1.4 · tasks/todo.md</span><span>Gate: every finding fixed, or declined with a reason.</span></div>
+          <div class="step-meta"><span class="label">1.4 · tasks/todo.md</span><span>Gate: every finding fixed, or declined with a reason. Declining a BLOCKING finding takes evidence.</span></div>
         </li>
         <li class="step">
           <div class="step-body">
@@ -1108,7 +1108,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
           <li>The work touches authentication, secrets, payments, or permissions beyond the ticket.</li>
           <li>It needs new credentials or third-party accounts.</li>
           <li>The plan has broken twice and the fix is not obvious.</li>
-          <li>An independent review raised a BLOCKING finding the agent can neither fix nor show to be wrong.</li>
+          <li>An independent review raised a BLOCKING finding the agent can neither fix nor disprove with evidence, or one is still open after the re-review.</li>
           <li>The task conflicts with the rules.</li>
         </ol>
       </div>
@@ -1251,7 +1251,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--paper-raised) 70%, transpa
             <li>Refactor step completed after green: no dead code, no over-fit logic.</li>
             <li>All new and existing tests pass. Full suite ran before the final commit.</li>
             <li>Linting, formatting, and type checking pass with no suppressions.</li>
-            <li>Non-trivial changes and PRs: independent review ran in a fresh context. Every finding is fixed or declined with a reason.</li>
+            <li>Non-trivial changes and PRs: independent review ran in a fresh context. Every finding is fixed or declined with a reason. A declined BLOCKING finding has evidence.</li>
           </ul>
         </div>
         <div>

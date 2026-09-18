@@ -14,12 +14,12 @@ Decide at the start. The launcher states the mode in its prompt with a line such
 
 - **Attended:** ask before assuming, confirm scope before touching shared code or infrastructure, get spec approval before coding, stop and re-plan when the plan breaks.
 - **Unattended:** take the most reasonable interpretation and proceed. Record every assumption under **Assumptions** in `tasks/todo.md` and repeat them in the PR. Prefer reversible choices. Commit the spec and continue; the PR is the review gate. Never widen scope to unblock yourself.
-- **Unattended stop conditions.** End cleanly with a **Needs decision** note instead of proceeding when the change is destructive or hard to reverse (data-dropping migrations, deleting resources, force pushes, production infrastructure), touches auth, secrets, payments, or permissions beyond the ticket, needs new credentials or third-party accounts, conflicts with these rules, or the plan has broken twice. Stop too when an independent review raises a BLOCKING finding you can neither fix nor show to be wrong.
+- **Unattended stop conditions.** End cleanly with a **Needs decision** note instead of proceeding when the change is destructive or hard to reverse (data-dropping migrations, deleting resources, force pushes, production infrastructure), touches auth, secrets, payments, or permissions beyond the ticket, needs new credentials or third-party accounts, conflicts with these rules, or the plan has broken twice. Stop too when you can neither fix a BLOCKING review finding nor disprove it with evidence, or when one is still open after the re-review.
 - Never silently build a whole solution on an assumption that could be wrong.
 
 ## Spec first (non-trivial work)
 
-Write `tasks/spec.md` before implementation: Goal, Inputs/Outputs, Constraints, Edge Cases, Out of Scope, Acceptance Criteria, Test Stubs (one or more per criterion). Drift means updating the spec first. Playbook 1.3.
+A change is trivial only when all five hold: it touches one file and 20 or fewer changed lines; it changes no public interface or behavior; it adds no dependency; it touches no schema, infrastructure, auth, secrets, or CI; and an existing test covers the code. When in doubt, it is non-trivial. State the tier and the reason on the first line of `tasks/todo.md`. Non-trivial work gets `tasks/spec.md` before implementation: Goal, Inputs/Outputs, Constraints, Edge Cases, Out of Scope, Acceptance Criteria, Test Stubs (one or more per criterion). Drift means updating the spec first. Playbook 1.3.
 
 ## Verify first
 
@@ -28,7 +28,7 @@ Write `tasks/spec.md` before implementation: Goal, Inputs/Outputs, Constraints, 
 - After every tool result: did it succeed, does it match expectations? Root cause before fixes.
 - Before presenting or finishing: re-read every changed file; remove debug output, dead code, stray TODOs; check naming, error paths, imports; confirm build and tests pass.
 - Elegance check for non-trivial changes: fewer branches or each justified; no new dependency unless the standard library would take more than twice the code; smallest diff that meets the spec; readable without opening another file.
-- Before marking non-trivial work complete, and before any PR, get the diff reviewed in a fresh context or by a read-only reviewer. Give the reviewer the request and the spec, not your summary. Evaluate each finding, fix the valid ones, rerun affected tests, and record what you declined. The author does not get the last word. Playbook 1.4.
+- Before marking non-trivial work complete, and before any PR, get the diff reviewed in a fresh context or by a read-only reviewer. Give the reviewer the request and the spec, not your summary. Evaluate each finding, fix the valid ones, rerun affected tests, and record what you declined. Declining a BLOCKING finding takes evidence: a test or reproduction that shows the failure does not occur. Attended, the human confirms the decline. Unattended, put the finding and the evidence at the top of the PR description. Fixes to BLOCKING findings get one re-review of the fix diff. If one is still open after that, ask (attended) or stop (unattended). The author does not get the last word. Playbook 1.4.
 
 ## Build in increments
 
