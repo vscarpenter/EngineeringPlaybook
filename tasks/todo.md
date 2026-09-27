@@ -38,13 +38,13 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
   - Red: four failures. The confirmation-hook wording was missing from the core, 1.2, and the explainer, and the core had no 1.9 pointer.
   - Green: both tests pass. The full suite runs 25 tests OK and 57 of 57 hook tests.
 - [x] Write the Review and Resuming From Here sections, then commit the handoff.
-- [ ] Blocked on the user: push the branch and open a pull request.
+- [x] Pushed with `git push -u origin fix/unattended-and-pasted-text` and opened [#7](https://github.com/vscarpenter/EngineeringPlaybook/pull/7), on the user's go-ahead.
 
 ## Assumptions
 
 - The approval covers the proposed rule text from the review, including the 6.3 item, with matching Part 8 and explainer edits so the documents agree.
 - The review fixes change the approved wording. Each is its own commit, so the user can drop any of them in review.
-- The approval does not cover a push or a pull request.
+- The first approval did not cover a push or a pull request. The user approved both later: "Push and open a PR".
 
 ## Review
 
@@ -65,7 +65,8 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
 ## Resuming From Here
 
 - Done: both rules, the review and re-review fixes, and the handoff are committed on `fix/unattended-and-pasted-text`. Suites pass and both reviews are resolved.
-- Next: push the branch and open a pull request once the user approves. Then maintainer review and merge.
+- Pushed to `origin/fix/unattended-and-pasted-text`. Pull request: [#7](https://github.com/vscarpenter/EngineeringPlaybook/pull/7).
+- Next: maintainer review and merge. No merge was performed.
 - Follow-ups for the user: the parked NIT 3 choice above. The README row "Fetched text is data". The 6.2 Review template's inline request slot. From PR #6: the audit's six flags, the 6.3 line "The model expands scope by default", and a test for the explainer's memory quote.
-- Blockers: the push and pull request wait on the user's go-ahead.
+- Blockers: none.
 - Needs decision: none.
