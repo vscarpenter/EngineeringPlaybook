@@ -209,14 +209,22 @@ class DocumentContracts(unittest.TestCase):
                 self.assertIn("other issues", security)
 
     def test_unattended_runs_do_not_stop_at_a_progress_report(self) -> None:
-        for path, heading in (
-            (CORE, "Operating mode"), (REFERENCE, "1.2 Operating modes")
+        for path, heading, person_stop in (
+            (CORE, "Operating mode", "Stop too when only a person can clear the next step"),
+            (REFERENCE, "1.2 Operating modes", "  - Only a person can clear the next step"),
         ):
             with self.subTest(path=path):
-                attended, unattended = section(read(path), heading).split("Unattended", 1)
-                self.assertIn("progress report is not a stopping point", unattended)
-                self.assertIn("task is done or a stop condition applies", unattended)
-                self.assertNotIn("progress report", attended)
+                attended, rest = re.split(r"\*\*Unattended[.:]\*\*", section(read(path), heading), maxsplit=1)
+                unattended = rest.split("in either mode", 1)[0]
+                self.assertRegex(unattended, r"Progress reports, offers to keep going, and lists of decisions[^.]*are not stopping points")
+                self.assertIn("task is done or a rule says to stop", unattended)
+                self.assertIn(person_stop, unattended)
+                self.assertNotIn("stopping point", attended)
+        stops = re.search(r'<div class="stops">(.*?)</div>', read(EXPLAINER), re.DOTALL)
+        self.assertIsNotNone(stops)
+        self.assertIn("a rule says to stop", stops.group(1))
+        self.assertIn("Only a person can clear the next step", stops.group(1))
+        self.assertNotIn("Only these", stops.group(1))
 
     def test_pasted_text_in_the_prompt_is_data(self) -> None:
         for path, heading in ((CORE, "Security"), (REFERENCE, "1.9 Agent security")):

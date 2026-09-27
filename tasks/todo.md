@@ -24,8 +24,11 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
   - Keyboard: End on the first failure tab selects and focuses Unsafe input, and exactly one panel shows.
   - The window would not resize, so a same-origin 390px iframe stood in for a phone. The two tables that overflow sit in their own `overflow-x: auto` regions, as before.
 - [x] Fresh-context review of the final diff: no BLOCKING, 6 IMPORTANT, 10 NIT.
-- [ ] Update the spec for the review fixes.
-- [ ] R1 review fix: name the stops that do not count, end on any rule that says to stop, and add the person-only blocker as a stop condition.
+- [x] Update the spec for the review fixes (`8be16c5`).
+- [x] R1 review fix: name the stops that do not count, end on any rule that says to stop, and add the person-only blocker as a stop condition.
+  - Red: the strengthened R1 test failed three times, for the core, the reference, and the explainer's stops block.
+  - A first green hid a typo, "Oonly", because `[Oo]nly` matched inside it. The test now expects the exact form in each file, failed on the typo, and passed once it was fixed.
+  - Green: the full suite runs 25 tests OK and 57 of 57 hook tests.
 - [ ] R2 review fix: pasted text after the maintainer rule, later messages covered, instructions followed only on the user's words, and a tagged Debug template.
 - [ ] Re-review of the fix diff.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.

@@ -59,7 +59,7 @@ Decide the mode at the start of the session. The launcher states it in its promp
 - Prefer reversible choices. When two options are close, pick the one that is easiest to undo.
 - Write and commit the spec, then continue. The PR is the review gate.
 - Never widen scope to unblock yourself.
-- A progress report is not a stopping point. Keep going until the task is done or a stop condition applies.
+- Progress reports, offers to keep going, and lists of decisions that block nothing are not stopping points. Keep going until the task is done or a rule says to stop.
 - **Stop conditions.** End the session cleanly (1.6) with a **Needs decision** note instead of proceeding when any of these apply:
   - The change is destructive or hard to reverse: data migrations that drop or rewrite data, deleting resources, force pushes, production infrastructure changes.
   - The work touches authentication, secrets, payments, or permissions beyond what the ticket describes.
@@ -67,6 +67,7 @@ Decide the mode at the start of the session. The launcher states it in its promp
   - The plan has broken twice. Stop even if another fix seems obvious; use the handoff in 1.6.
   - An independent review raised a BLOCKING finding you can neither fix nor disprove with evidence, or one is still open after the re-review (1.4).
   - The task conflicts with these rules.
+  - Only a person can clear the next step, such as a denied permission, a sandbox limit, or a blocking hook. Do not work around it.
 
 **Never**, in either mode: silently interpret an ambiguous requirement and build an entire solution on an assumption that could be wrong.
 
