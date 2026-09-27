@@ -19,13 +19,20 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
   - Green: the same command passes. The full suite runs 24 tests OK and 57 of 57 hook tests. Commit `c8e9155`.
 - [x] R2: pasted text is data. Test first, then the core, reference 1.9, 6.3, Part 8, and the explainer.
   - Red: `python3 -m unittest tests.test_documents.DocumentContracts.test_pasted_text_in_the_prompt_is_data` had three failures: the core and 1.9 lacked the rule, and Part 8 lacked "pasted text".
-  - Green: the same command passes. The full suite runs 25 tests OK and 57 of 57 hook tests.
-- [ ] Browser check of the explainer.
-- [ ] Fresh-context review of the final diff.
+  - Green: the same command passes. The full suite runs 25 tests OK and 57 of 57 hook tests. Commit `60088e8`.
+- [x] Browser check of the explainer, served from 127.0.0.1. At 1731px and in a 386px frame, the stops paragraph and the 1.9 panel render inside the gutters with no page-level horizontal scroll.
+  - Keyboard: End on the first failure tab selects and focuses Unsafe input, and exactly one panel shows.
+  - The window would not resize, so a same-origin 390px iframe stood in for a phone. The two tables that overflow sit in their own `overflow-x: auto` regions, as before.
+- [x] Fresh-context review of the final diff: no BLOCKING, 6 IMPORTANT, 10 NIT.
+- [ ] Update the spec for the review fixes.
+- [ ] R1 review fix: name the stops that do not count, end on any rule that says to stop, and add the person-only blocker as a stop condition.
+- [ ] R2 review fix: pasted text after the maintainer rule, later messages covered, instructions followed only on the user's words, and a tagged Debug template.
+- [ ] Re-review of the fix diff.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
 - [ ] Blocked on the user: push the branch and open a pull request.
 
 ## Assumptions
 
-- The approval covers the proposed rule text from the review, with matching Part 8 and explainer edits so the documents agree.
+- The approval covers the proposed rule text from the review, including the 6.3 item, with matching Part 8 and explainer edits so the documents agree.
+- The review fixes change the approved wording. Each is its own commit, so the user can drop either in review.
 - The approval does not cover a push or a pull request.
