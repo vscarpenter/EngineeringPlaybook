@@ -458,7 +458,7 @@ Confirm before proceeding.
 - **Implicit context.** Assuming the model knows your project layout or past decisions.
 - **Conversational framing on operational tasks.** Write direct commands.
 - **No exit condition.** "Keep checking until you find it" loops. Define outcomes (1.6).
-- **Implicit "above and beyond."** Current models do what you asked and little more. If you want a fully featured implementation, say so.
+- **Implicit scope.** Some models stop at the literal request and others build past it. Say what the finished work includes and what it leaves out.
 - **Severity self-censorship in reviews.** "Be conservative" or "only flag high severity" makes the model investigate fully and report less. Ask for everything, tagged.
 - **Skipping verification in the prompt.** Name red/green/refactor for changed behavior and the relevant checks for other work (3.1).
 - **Encoding model quirks in permanent docs.** Model behavior changes with each release. Check the vendor's current prompting guide instead of trusting a note written for last year's model.

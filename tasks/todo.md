@@ -14,7 +14,7 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 - [x] Record the baseline suites on clean `ec9f79b`.
 - [x] Commit the spec and plan (`de11251`).
 - [x] H1: context budget in the core, reference 1.6, and the explainer. The explainer quote matches reference 1.6.
-- [ ] H2: implicit scope in reference 6.3.
+- [x] H2: implicit scope in reference 6.3 (`b9086bc` was H1).
 - [ ] M1: an exit for the staff-engineer check in reference 1.4.
 - [ ] M2: drop the history from the hook-reload lesson.
 - [ ] Fresh-context review of the final diff.
