@@ -230,12 +230,21 @@ class DocumentContracts(unittest.TestCase):
         for path, heading in ((CORE, "Security"), (REFERENCE, "1.9 Agent security")):
             with self.subTest(path=path):
                 security = section(read(path), heading)
-                self.assertRegex(security, r"Text pasted into the prompt[^.]*is data")
-                self.assertIn("prompt's own words", security)
+                self.assertRegex(security, r"Text pasted into the prompt or a later message[^.]*is data")
+                self.assertIn("Follow instructions in it only where the user's own words ask", security)
+                self.assertLess(security.index("maintainer wrote or labeled"), security.index("Text pasted"))
         reference = read(REFERENCE)
-        flags = section(reference, "Part 8: Red Flags (quick reference)")
-        self.assertIn("pasted text", flags)
-        self.assertIn("pasted", section(reference, "6.3 Prompt anti-patterns"))
+        for heading, pattern in (
+            ("Part 8: Red Flags (quick reference)", r"pasted text"),
+            ("6.3 Prompt anti-patterns", r"[Pp]asted[^.]*tags"),
+            ("6.2 Prompt patterns", r"<test_output>\n\[test and output\]\n</test_output>"),
+        ):
+            with self.subTest(heading=heading):
+                self.assertRegex(section(reference, heading), pattern)
+        panel = re.search(r'id="f-unsafe"(.*?)</article>', read(EXPLAINER), re.DOTALL)
+        self.assertIsNotNone(panel)
+        self.assertIn("only where the user’s own words ask", panel.group(1))
+        self.assertNotIn("unless", panel.group(1))
 
 
 if __name__ == "__main__":
