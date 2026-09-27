@@ -111,7 +111,7 @@ Decide the mode at the start of the session. The launcher states it in its promp
 4. Confirm error paths are handled, not only the happy path.
 5. Confirm the code compiles, runs, and passes tests.
 6. Run the elegance check below.
-7. Ask: would a staff engineer approve this? If unsure, keep improving.
+7. Ask: would a staff engineer approve this? Fix each objection to this change that you can name, then stop. Report anything outside it as a follow-up.
 
 **Elegance check (required for non-trivial changes).** All four must hold:
 
@@ -158,7 +158,7 @@ A trivial change (1.3) with no PR skips the reviewer. Self-review still applies.
 4. Give a short summary at each significant step.
 5. Add a Review section to `tasks/todo.md` when the task completes.
 
-**Context budget.** If you are roughly 80% through available context with major uncommitted work, stop adding features and commit. Prefer a fresh session over compaction: state lives in `tasks/` and git, not in chat history.
+**Context budget.** Keep state in `tasks/` and git, not in chat history, so compaction or a fresh session loses nothing.
 
 **Done conditions.** Every multi-step task needs a stated done condition the agent can recognize on its own. Define outcomes, not process.
 
@@ -458,7 +458,7 @@ Confirm before proceeding.
 - **Implicit context.** Assuming the model knows your project layout or past decisions.
 - **Conversational framing on operational tasks.** Write direct commands.
 - **No exit condition.** "Keep checking until you find it" loops. Define outcomes (1.6).
-- **Implicit "above and beyond."** Current models do what you asked and little more. If you want a fully featured implementation, say so.
+- **Implicit scope.** Some models stop at the literal request and others build past it. Say what the finished work includes and what it leaves out.
 - **Severity self-censorship in reviews.** "Be conservative" or "only flag high severity" makes the model investigate fully and report less. Ask for everything, tagged.
 - **Skipping verification in the prompt.** Name red/green/refactor for changed behavior and the relevant checks for other work (3.1).
 - **Encoding model quirks in permanent docs.** Model behavior changes with each release. Check the vendor's current prompting guide instead of trusting a note written for last year's model.

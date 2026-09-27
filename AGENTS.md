@@ -62,7 +62,7 @@ About 80% line coverage as a floor and 100% of acceptance criteria. Behavior-bas
 - Plan in `tasks/todo.md` before touching code. Mark items done as you go, never in a batch at the end.
 - Stage only task-owned changes. Preserve unrelated staged and unstaged edits, including hunks in the same file; ask before including unrelated work. This ownership rule also applies to recovery branches. Playbook 1.6.
 - Commit after each logical unit: `<type>(<scope>): <description>`, imperative, lowercase, 72 characters or fewer. Branches `<type>/<short-description>`. Flow: commit, push, open PR. A PR holds 400 or fewer lines of non-generated code and one concern.
-- At roughly 80% of context with uncommitted work, stop adding and commit. Prefer a fresh session over compaction; state lives in `tasks/` and git.
+- Keep state in `tasks/` and git, not in chat history, so compaction or a fresh session loses nothing.
 - After any correction, add the lesson to `tasks/lessons.md` immediately. A repeated mistake is a process failure.
 - Before ending: write **Resuming From Here** in `tasks/todo.md` (done, next, blockers, assumptions, any Needs decision), run verification, then commit task-owned changes including the handoff. Check status and report the commit plus any remaining user changes.
 - If verification cannot pass, use the blocked-handoff recovery in Playbook 1.6. Preserve unrelated work; report the failure and recovery location instead of claiming completion.
