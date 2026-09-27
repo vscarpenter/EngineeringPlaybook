@@ -158,7 +158,7 @@ A trivial change (1.3) with no PR skips the reviewer. Self-review still applies.
 4. Give a short summary at each significant step.
 5. Add a Review section to `tasks/todo.md` when the task completes.
 
-**Context budget.** State lives in `tasks/` and git, not in chat history, so compaction or a fresh session loses nothing.
+**Context budget.** Keep state in `tasks/` and git, not in chat history, so compaction or a fresh session loses nothing.
 
 **Done conditions.** Every multi-step task needs a stated done condition the agent can recognize on its own. Define outcomes, not process.
 

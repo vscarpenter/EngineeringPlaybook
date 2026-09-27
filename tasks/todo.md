@@ -18,8 +18,8 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 - [x] M1 (`6b04f18`): an exit for the staff-engineer check in reference 1.4. Part 5's staff-engineer bar still points at it.
 - [x] M2 (`e499f86`): drop the history from the hook-reload lesson.
 - [x] Fresh-context review of the final diff: no BLOCKING, 6 IMPORTANT, 7 NIT.
-- [ ] Update the spec for the push, the pull request, and the review fixes.
-- [ ] Review fix: make the durable-state line an instruction.
+- [x] Update the spec for the push, the pull request, and the review fixes (`a80cc31`).
+- [x] Review fix: make the durable-state line an instruction. The explainer quote still matches reference 1.6.
 - [ ] Review fix: keep the staff-engineer exit inside the change.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
 - [ ] Push with `git push -u origin fix/prompt-audit`, then open the pull request.
