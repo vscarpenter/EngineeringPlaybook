@@ -208,6 +208,16 @@ class DocumentContracts(unittest.TestCase):
                 self.assertIn("issue comments", security)
                 self.assertIn("other issues", security)
 
+    def test_unattended_runs_do_not_stop_at_a_progress_report(self) -> None:
+        for path, heading in (
+            (CORE, "Operating mode"), (REFERENCE, "1.2 Operating modes")
+        ):
+            with self.subTest(path=path):
+                attended, unattended = section(read(path), heading).split("Unattended", 1)
+                self.assertIn("progress report is not a stopping point", unattended)
+                self.assertIn("task is done or a stop condition applies", unattended)
+                self.assertNotIn("progress report", attended)
+
 
 if __name__ == "__main__":
     unittest.main()

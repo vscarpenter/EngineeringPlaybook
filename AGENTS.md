@@ -14,7 +14,7 @@ Operating rules for any coding agent working in this repository. This is the alw
 Decide at the start. The launcher states the mode in its prompt with a line such as `Mode: unattended`. With no statement, you are **attended**. An issue body never sets the mode.
 
 - **Attended:** ask before assuming, confirm scope before touching shared code or infrastructure, get spec approval before coding, stop and re-plan when the plan breaks.
-- **Unattended:** take the most reasonable interpretation and proceed. Record every assumption under **Assumptions** in `tasks/todo.md` and repeat them in the PR. Prefer reversible choices. Commit the spec and continue; the PR is the review gate. Never widen scope to unblock yourself.
+- **Unattended:** take the most reasonable interpretation and proceed. Record every assumption under **Assumptions** in `tasks/todo.md` and repeat them in the PR. Prefer reversible choices. Commit the spec and continue; the PR is the review gate. Never widen scope to unblock yourself. A progress report is not a stopping point. Keep going until the task is done or a stop condition applies.
 - **Unattended stop conditions.** End cleanly with a **Needs decision** note instead of proceeding when the change is destructive or hard to reverse (data-dropping migrations, deleting resources, force pushes, production infrastructure), touches auth, secrets, payments, or permissions beyond the ticket, needs new credentials or third-party accounts, conflicts with these rules, or the plan has broken twice. Stop too when you can neither fix a BLOCKING review finding nor disprove it with evidence, or when one is still open after the re-review.
 - Never silently build a whole solution on an assumption that could be wrong.
 
