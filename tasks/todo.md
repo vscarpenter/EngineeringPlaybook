@@ -31,8 +31,12 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
   - Green: the full suite runs 25 tests OK and 57 of 57 hook tests. Commit `3e5606f`.
 - [x] R2 review fix: pasted text after the maintainer rule, later messages covered, instructions followed only on the user's words, and a tagged Debug template.
   - Red: the strengthened R2 test failed four times: the core, 1.9, the 6.2 Debug template, and the explainer panel. Part 8 and 6.3 already passed.
-  - Green: the same command passes. The full suite runs 25 tests OK and 57 of 57 hook tests.
-- [ ] Re-review of the fix diff.
+  - Green: the same command passes. The full suite runs 25 tests OK and 57 of 57 hook tests. Commit `62cce6a`.
+- [x] Second browser check: at 1440px, 500px, and 386px the seven stop items, the note, and the 1.9 panel fit the gutters with no page-level horizontal scroll.
+- [x] Re-review of the fix diff: no BLOCKING, all six earlier findings resolved, and 1 IMPORTANT and 7 NIT new.
+- [x] Re-review fix: the person-only stop names a hook that asks for confirmation, not any blocking hook, and the core points to 1.9.
+  - Red: four failures. The confirmation-hook wording was missing from the core, 1.2, and the explainer, and the core had no 1.9 pointer.
+  - Green: both tests pass. The full suite runs 25 tests OK and 57 of 57 hook tests.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
 - [ ] Blocked on the user: push the branch and open a pull request.
 

@@ -67,7 +67,7 @@ Decide the mode at the start of the session. The launcher states it in its promp
   - The plan has broken twice. Stop even if another fix seems obvious; use the handoff in 1.6.
   - An independent review raised a BLOCKING finding you can neither fix nor disprove with evidence, or one is still open after the re-review (1.4).
   - The task conflicts with these rules.
-  - Only a person can clear the next step, such as a denied permission, a sandbox limit, or a blocking hook. Do not work around it.
+  - Only a person can clear the next step, such as a denied permission, a sandbox limit, or a hook that asks for confirmation. Do not work around it.
 
 **Never**, in either mode: silently interpret an ambiguous requirement and build an entire solution on an assumption that could be wrong.
 
