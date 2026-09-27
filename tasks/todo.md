@@ -22,7 +22,7 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 - [x] Review fix (`eb48e45`): make the durable-state line an instruction. The explainer quote still matches reference 1.6.
 - [x] Review fix (`6590350`): keep the staff-engineer exit inside the change.
 - [x] Write the Review and Resuming From Here sections, then commit the handoff.
-- [ ] Push with `git push -u origin fix/prompt-audit`, then open the pull request.
+- [x] Pushed with `git push -u origin fix/prompt-audit` and opened [#6](https://github.com/vscarpenter/EngineeringPlaybook/pull/6).
 
 ## Assumptions
 
@@ -41,13 +41,14 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 - Declined #8: "Context budget" still names the question the paragraph answers. Renaming it would change the `SKILL.md` routing row for no change in behavior.
 - Declined #12: the severity note matches the migration guide's advice to report every finding and filter later. The audit kept it on purpose.
 - Declined #13: the spec rules out new contract tests. A test for the explainer's memory quote is a follow-up.
-- Checks at `6590350`: 23 document and install tests pass, 57 of 57 hook tests pass, and `git diff --check ec9f79b..HEAD` is clean. Added prose has no em or en dashes and no double hyphens. The old wording appears nowhere outside this spec's description of the search. The explainer quote matches reference 1.6 and the core.
+- Checks at `6590350`: 23 document and install tests pass, 57 of 57 hook tests pass, and `git diff --check ec9f79b..HEAD` is clean. Added prose has no em or en dashes and no double hyphens. The old wording appears nowhere outside the spec's description of the search. The explainer quote matches reference 1.6 and the core.
 - Completion checks: red/green is N/A for prose-only edits (3.1). No dependencies, environment variables, feature flags, or architecture decisions were added. Accessibility is N/A: one explainer sentence changed, with no change to structure.
 
 ## Resuming From Here
 
 - Done: four audit findings and two review fixes, committed on `fix/prompt-audit`. Suites pass and the independent review is resolved.
-- Next: push the branch and open the pull request, both approved. Then maintainer review and merge.
+- Pushed to `origin/fix/prompt-audit`. Pull request: [#6](https://github.com/vscarpenter/EngineeringPlaybook/pull/6).
+- Next: maintainer review and merge. No merge was performed.
 - Follow-ups for the user: the audit's six flags; the 6.3 line "The model expands scope by default"; and a possible test for the explainer's memory quote.
 - Blockers: none.
 - Needs decision: none.
