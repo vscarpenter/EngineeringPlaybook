@@ -15,7 +15,7 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 - [x] Commit the spec and plan (`de11251`).
 - [x] H1: context budget in the core, reference 1.6, and the explainer. The explainer quote matches reference 1.6.
 - [x] H2: implicit scope in reference 6.3 (`b9086bc` was H1).
-- [ ] M1: an exit for the staff-engineer check in reference 1.4.
+- [x] M1: an exit for the staff-engineer check in reference 1.4. Part 5's staff-engineer bar still points at it.
 - [ ] M2: drop the history from the hook-reload lesson.
 - [ ] Fresh-context review of the final diff.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
