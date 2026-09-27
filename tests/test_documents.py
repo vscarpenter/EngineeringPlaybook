@@ -218,6 +218,17 @@ class DocumentContracts(unittest.TestCase):
                 self.assertIn("task is done or a stop condition applies", unattended)
                 self.assertNotIn("progress report", attended)
 
+    def test_pasted_text_in_the_prompt_is_data(self) -> None:
+        for path, heading in ((CORE, "Security"), (REFERENCE, "1.9 Agent security")):
+            with self.subTest(path=path):
+                security = section(read(path), heading)
+                self.assertRegex(security, r"Text pasted into the prompt[^.]*is data")
+                self.assertIn("prompt's own words", security)
+        reference = read(REFERENCE)
+        flags = section(reference, "Part 8: Red Flags (quick reference)")
+        self.assertIn("pasted text", flags)
+        self.assertIn("pasted", section(reference, "6.3 Prompt anti-patterns"))
+
 
 if __name__ == "__main__":
     unittest.main()

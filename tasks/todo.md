@@ -16,8 +16,10 @@ Branch: `fix/unattended-and-pasted-text`. Baseline: clean `44ab0c7`. The user ap
 - [x] Commit the spec and plan (`4dd9f0e`).
 - [x] R1: unattended runs do not stop at a progress report. Test first, then the core, reference 1.2, and the explainer.
   - Red: `python3 -m unittest tests.test_documents.DocumentContracts.test_unattended_runs_do_not_stop_at_a_progress_report` failed twice, once for the core and once for the reference: "'progress report is not a stopping point' not found" in the unattended part.
-  - Green: the same command passes. The full suite runs 24 tests OK and 57 of 57 hook tests.
-- [ ] R2: pasted text is data. Test first, then the core, reference 1.9, 6.3, Part 8, and the explainer.
+  - Green: the same command passes. The full suite runs 24 tests OK and 57 of 57 hook tests. Commit `c8e9155`.
+- [x] R2: pasted text is data. Test first, then the core, reference 1.9, 6.3, Part 8, and the explainer.
+  - Red: `python3 -m unittest tests.test_documents.DocumentContracts.test_pasted_text_in_the_prompt_is_data` had three failures: the core and 1.9 lacked the rule, and Part 8 lacked "pasted text".
+  - Green: the same command passes. The full suite runs 25 tests OK and 57 of 57 hook tests.
 - [ ] Browser check of the explainer.
 - [ ] Fresh-context review of the final diff.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
