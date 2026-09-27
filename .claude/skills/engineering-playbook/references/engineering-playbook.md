@@ -111,7 +111,7 @@ Decide the mode at the start of the session. The launcher states it in its promp
 4. Confirm error paths are handled, not only the happy path.
 5. Confirm the code compiles, runs, and passes tests.
 6. Run the elegance check below.
-7. Ask: would a staff engineer approve this? Fix each objection you can name, then stop. Polishing past that point is scope creep.
+7. Ask: would a staff engineer approve this? Fix each objection to this change that you can name, then stop. Report anything outside it as a follow-up.
 
 **Elegance check (required for non-trivial changes).** All four must hold:
 
