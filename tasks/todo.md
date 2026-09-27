@@ -13,15 +13,20 @@ Branch: `fix/prompt-audit`. Baseline: clean `ec9f79b`. The user approved all fou
 
 - [x] Record the baseline suites on clean `ec9f79b`.
 - [x] Commit the spec and plan (`de11251`).
-- [x] H1: context budget in the core, reference 1.6, and the explainer. The explainer quote matches reference 1.6.
-- [x] H2: implicit scope in reference 6.3 (`b9086bc` was H1).
-- [x] M1: an exit for the staff-engineer check in reference 1.4. Part 5's staff-engineer bar still points at it.
-- [x] M2: drop the history from the hook-reload lesson.
-- [ ] Fresh-context review of the final diff.
+- [x] H1 (`b9086bc`): context budget in the core, reference 1.6, and the explainer. The explainer quote matches reference 1.6.
+- [x] H2 (`d1a9bab`): implicit scope in reference 6.3.
+- [x] M1 (`6b04f18`): an exit for the staff-engineer check in reference 1.4. Part 5's staff-engineer bar still points at it.
+- [x] M2 (`e499f86`): drop the history from the hook-reload lesson.
+- [x] Fresh-context review of the final diff: no BLOCKING, 6 IMPORTANT, 7 NIT.
+- [ ] Update the spec for the push, the pull request, and the review fixes.
+- [ ] Review fix: make the durable-state line an instruction.
+- [ ] Review fix: keep the staff-engineer exit inside the change.
 - [ ] Write the Review and Resuming From Here sections, then commit the handoff.
+- [ ] Push with `git push -u origin fix/prompt-audit`, then open the pull request.
 
 ## Assumptions
 
-- "Apply all patches" covers the branch, commits, and handoff. It does not cover a push or a pull request.
+- The user approved the branch, commits, handoff, push, and a pull request.
 - The patch text reviewed in the audit is the approved wording.
+- Two review fixes change approved wording. Each is its own commit, so the user can drop either in the pull request.
 - The audit's six flags stay open for the user.
